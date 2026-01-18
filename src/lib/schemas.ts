@@ -290,6 +290,7 @@ export const UserSettingsSchema = z
     selectedTemplateId: z.string(),
     selectedThemeId: z.string().optional(),
     enableSupabaseWriteSqlMigration: z.boolean().optional(),
+    skipPruneEdgeFunctions: z.boolean().optional(),
     selectedChatMode: ChatModeSchema.optional(),
     acceptedCommunityCode: z.boolean().optional(),
     zoomLevel: ZoomLevelSchema.optional(),
