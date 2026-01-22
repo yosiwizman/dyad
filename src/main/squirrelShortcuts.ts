@@ -14,6 +14,10 @@ import { spawn } from "child_process";
 import * as path from "path";
 import log from "electron-log";
 
+// Use path.win32 to ensure consistent Windows path handling,
+// even when running tests on Linux/macOS CI.
+const winPath = path.win32;
+
 const logger = log.scope("squirrel");
 
 /**
@@ -64,9 +68,9 @@ export function detectSquirrelEvent(argv: string[]): SquirrelEvent {
 export function getUpdateExePath(execPath: string): string {
   // execPath is like: C:\Users\...\AppData\Local\abba_ai\app-1.0.0\ABBA AI.exe
   // Update.exe is at: C:\Users\...\AppData\Local\abba_ai\Update.exe
-  const appDir = path.dirname(execPath); // app-1.0.0 directory
-  const rootDir = path.dirname(appDir); // abba_ai directory
-  return path.join(rootDir, "Update.exe");
+  const appDir = winPath.dirname(execPath); // app-1.0.0 directory
+  const rootDir = winPath.dirname(appDir); // abba_ai directory
+  return winPath.join(rootDir, "Update.exe");
 }
 
 /**
@@ -75,7 +79,7 @@ export function getUpdateExePath(execPath: string): string {
  * @returns The exe filename (e.g., "ABBA AI.exe")
  */
 export function getExeName(execPath: string): string {
-  return path.basename(execPath);
+  return winPath.basename(execPath);
 }
 
 /**
