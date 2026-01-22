@@ -34,11 +34,19 @@ if (!existsSync(vaultIntegrationPath)) {
   const content = readFileSync(vaultIntegrationPath, "utf-8");
 
   // Check that VaultAuth is rendered when not authenticated
-  if (content.includes("!isVaultAuthenticated") && content.includes("<VaultAuth")) {
+  if (
+    content.includes("!isVaultAuthenticated") &&
+    content.includes("<VaultAuth")
+  ) {
     console.log("✅ VaultAuth is rendered when user is not authenticated");
-  } else if (content.includes("!isAuthenticated") && content.includes("<VaultAuth")) {
+  } else if (
+    content.includes("!isAuthenticated") &&
+    content.includes("<VaultAuth")
+  ) {
     // Legacy check
-    console.log("✅ VaultAuth is rendered when user is not authenticated (legacy pattern)");
+    console.log(
+      "✅ VaultAuth is rendered when user is not authenticated (legacy pattern)",
+    );
   } else {
     errors.push(
       "❌ VaultAuth may not be rendered when user is unauthenticated - check VaultIntegration.tsx",
@@ -51,7 +59,9 @@ if (!existsSync(vaultIntegrationPath)) {
     content.includes("Vault Project Auth") ||
     content.includes("Vault Auth:")
   ) {
-    console.log("✅ Vault project auth is clearly separated from org connection");
+    console.log(
+      "✅ Vault project auth is clearly separated from org connection",
+    );
   } else {
     warnings.push(
       "⚠️  Consider clarifying the distinction between Vault auth and Supabase org connection",
@@ -106,10 +116,7 @@ const expectedReasons = [
 ];
 
 // Check handlers
-const handlersPath = join(
-  projectRoot,
-  "src/ipc/handlers/vault_handlers.ts",
-);
+const handlersPath = join(projectRoot, "src/ipc/handlers/vault_handlers.ts");
 
 if (existsSync(handlersPath)) {
   const handlersContent = readFileSync(handlersPath, "utf-8");
@@ -122,7 +129,9 @@ if (existsSync(handlersPath)) {
   }
 
   if (missingReasons.length === 0) {
-    console.log("✅ All expected auth reasons are defined in vault_handlers.ts");
+    console.log(
+      "✅ All expected auth reasons are defined in vault_handlers.ts",
+    );
   } else {
     errors.push(
       `❌ Missing auth reasons in vault_handlers.ts: ${missingReasons.join(", ")}`,
@@ -133,7 +142,9 @@ if (existsSync(handlersPath)) {
   if (handlersContent.includes("export type VaultAuthReason")) {
     console.log("✅ VaultAuthReason type is exported");
   } else {
-    warnings.push("⚠️  VaultAuthReason type should be exported for consistency");
+    warnings.push(
+      "⚠️  VaultAuthReason type should be exported for consistency",
+    );
   }
 }
 

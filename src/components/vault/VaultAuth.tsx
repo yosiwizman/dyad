@@ -65,9 +65,7 @@ export function VaultAuth() {
     onSuccess: (result) => {
       if (result.success) {
         showSuccess(
-          isSignUpMode
-            ? "Account created successfully!"
-            : "Signed in to Vault",
+          isSignUpMode ? "Account created successfully!" : "Signed in to Vault",
         );
         setEmail("");
         setPassword("");
@@ -104,7 +102,9 @@ export function VaultAuth() {
   const refreshMutation = useMutation({
     mutationFn: async () => {
       const ipcClient = IpcClient.getInstance();
-      return ipcClient.invoke<{ success: boolean; error?: string }>("vault:auth-refresh");
+      return ipcClient.invoke<{ success: boolean; error?: string }>(
+        "vault:auth-refresh",
+      );
     },
     onSuccess: (result) => {
       if (result.success) {
@@ -221,8 +221,7 @@ export function VaultAuth() {
       case "TOKEN_REFRESH_FAILED":
         return {
           title: "Session refresh failed",
-          description:
-            "Could not refresh your session. Please sign in again.",
+          description: "Could not refresh your session. Please sign in again.",
         };
       case "CONFIG_MISSING":
         return {

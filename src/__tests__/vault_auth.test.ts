@@ -3,7 +3,9 @@ import { VaultAuthSessionSchema, VaultSettingsSchema } from "../lib/schemas";
 
 describe("VaultAuthSession Schema", () => {
   const validSession = {
-    accessToken: { value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.signature" },
+    accessToken: {
+      value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.signature",
+    },
     refreshToken: { value: "refresh_token_value" },
     userEmail: "user@example.com",
     expiresAt: Date.now() + 3600000, // 1 hour from now
@@ -177,7 +179,7 @@ describe("VaultAuthReason Types", () => {
     "CONFIG_MISSING",
   ] as const;
 
-  type VaultAuthReason = typeof VALID_REASONS[number];
+  type VaultAuthReason = (typeof VALID_REASONS)[number];
 
   it("should define all expected auth reasons", () => {
     expect(VALID_REASONS).toContain("AUTHENTICATED");
@@ -195,7 +197,8 @@ describe("VaultAuthReason Types", () => {
     AUTHENTICATED: "User is authenticated and session is valid",
     NO_SESSION: "No active session found - user needs to sign in",
     SESSION_EXPIRED: "Session has expired - user needs to sign in again",
-    TOKEN_REFRESH_FAILED: "Session refresh failed - user needs to sign in again",
+    TOKEN_REFRESH_FAILED:
+      "Session refresh failed - user needs to sign in again",
     CONFIG_MISSING: "Vault is not configured - URL or key missing",
   };
 
@@ -216,7 +219,9 @@ describe("Auth Status Result Structure", () => {
     expiresAt?: number;
   }
 
-  const createAuthStatus = (overrides: Partial<VaultAuthStatusResult>): VaultAuthStatusResult => ({
+  const createAuthStatus = (
+    overrides: Partial<VaultAuthStatusResult>,
+  ): VaultAuthStatusResult => ({
     isAuthenticated: false,
     reason: "NO_SESSION",
     ...overrides,

@@ -62,7 +62,9 @@ async function getVaultAccessToken(): Promise<string | null> {
     // Token expired, try to refresh
     if (vaultSession.refreshToken?.value) {
       try {
-        const refreshed = await refreshVaultSession(vaultSession.refreshToken.value);
+        const refreshed = await refreshVaultSession(
+          vaultSession.refreshToken.value,
+        );
         if (refreshed) {
           return refreshed.accessToken.value;
         }
@@ -93,7 +95,9 @@ async function getVaultAccessToken(): Promise<string | null> {
 function createVaultSupabaseClient() {
   const config = getVaultConfig();
   if (!config.url || !config.anonKey) {
-    throw new Error("Vault is not configured. Please set URL and publishable key.");
+    throw new Error(
+      "Vault is not configured. Please set URL and publishable key.",
+    );
   }
 
   // Dynamic import to avoid bundling issues
@@ -124,7 +128,9 @@ async function signInToVault(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.error_description || error.message || "Sign in failed");
+    throw new Error(
+      error.error_description || error.message || "Sign in failed",
+    );
   }
 
   const data = await response.json();
@@ -133,7 +139,7 @@ async function signInToVault(
     accessToken: { value: data.access_token },
     refreshToken: { value: data.refresh_token },
     userEmail: data.user?.email || email,
-    expiresAt: Date.now() + (data.expires_in * 1000),
+    expiresAt: Date.now() + data.expires_in * 1000,
   };
 
   // Store session in settings
@@ -169,21 +175,25 @@ async function signUpForVault(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.error_description || error.message || "Sign up failed");
+    throw new Error(
+      error.error_description || error.message || "Sign up failed",
+    );
   }
 
   const data = await response.json();
 
   // If email confirmation is required, user won't have tokens yet
   if (!data.access_token) {
-    throw new Error("Please check your email to confirm your account, then sign in.");
+    throw new Error(
+      "Please check your email to confirm your account, then sign in.",
+    );
   }
 
   const session: VaultAuthSession = {
     accessToken: { value: data.access_token },
     refreshToken: { value: data.refresh_token },
     userEmail: data.user?.email || email,
-    expiresAt: Date.now() + (data.expires_in * 1000),
+    expiresAt: Date.now() + data.expires_in * 1000,
   };
 
   // Store session in settings
@@ -207,14 +217,17 @@ async function refreshVaultSession(
 ): Promise<VaultAuthSession | null> {
   const { url, anonKey } = createVaultSupabaseClient();
 
-  const response = await fetch(`${url}/auth/v1/token?grant_type=refresh_token`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      apikey: anonKey,
+  const response = await fetch(
+    `${url}/auth/v1/token?grant_type=refresh_token`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: anonKey,
+      },
+      body: JSON.stringify({ refresh_token: refreshToken }),
     },
-    body: JSON.stringify({ refresh_token: refreshToken }),
-  });
+  );
 
   if (!response.ok) {
     return null;
@@ -226,7 +239,7 @@ async function refreshVaultSession(
     accessToken: { value: data.access_token },
     refreshToken: { value: data.refresh_token },
     userEmail: data.user?.email || "",
-    expiresAt: Date.now() + (data.expires_in * 1000),
+    expiresAt: Date.now() + data.expires_in * 1000,
   };
 
   // Update stored session
@@ -584,7 +597,8 @@ export function registerVaultHandlers() {
             return {
               success: false,
               status: "needs_login",
-              message: "Session expired and refresh failed. Please sign in again.",
+              message:
+                "Session expired and refresh failed. Please sign in again.",
               authReason: "TOKEN_REFRESH_FAILED",
             };
           }
@@ -729,7 +743,8 @@ export function registerVaultHandlers() {
         }
         return { success: true, userEmail: session.userEmail };
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Authentication failed";
+        const message =
+          error instanceof Error ? error.message : "Authentication failed";
         logger.error(`Vault auth failed: ${message}`);
         return { success: false, error: message };
       }
@@ -739,23 +754,17 @@ export function registerVaultHandlers() {
   /**
    * Sign out from Vault
    */
-  handle(
-    "vault:auth-sign-out",
-    async (): Promise<{ success: boolean }> => {
-      signOutFromVault();
-      return { success: true };
-    },
-  );
+  handle("vault:auth-sign-out", async (): Promise<{ success: boolean }> => {
+    signOutFromVault();
+    return { success: true };
+  });
 
   /**
    * Get Vault auth status with detailed reason
    */
-  handle(
-    "vault:auth-status",
-    async (): Promise<VaultAuthStatusResult> => {
-      return getVaultAuthStatus();
-    },
-  );
+  handle("vault:auth-status", async (): Promise<VaultAuthStatusResult> => {
+    return getVaultAuthStatus();
+  });
 
   /**
    * Refresh Vault session manually
@@ -778,7 +787,8 @@ export function registerVaultHandlers() {
         }
         return { success: false, error: "Session refresh failed" };
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Refresh failed";
+        const message =
+          error instanceof Error ? error.message : "Refresh failed";
         logger.error(`Manual session refresh failed: ${message}`);
         return { success: false, error: message };
       }

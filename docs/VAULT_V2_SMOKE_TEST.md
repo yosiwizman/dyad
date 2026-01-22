@@ -289,17 +289,17 @@ Key changes:
 
 **Validation Checklist:**
 
-| Step | Expected Result | ✅ |
-|------|-----------------|----|
-| 1. Configure URL + key | Settings saved, status shows "Not tested" | ⬜ |
-| 2. Click Test Connection (no auth) | Status: "Needs login", reason: "NO_SESSION" | ⬜ |
-| 3. Sign in with email/password | Success toast, "Signed in to Vault (Project Auth)" shown | ⬜ |
-| 4. Click Test Connection (authenticated) | Status: "Connected", reason: "AUTHENTICATED" | ⬜ |
-| 5. Click Copy Diagnostics | Report includes `Auth Reason: AUTHENTICATED`, `User Email: <email>` | ⬜ |
-| 6. Click Sign Out | Success toast, sign-in form reappears | ⬜ |
-| 7. Restart app, check Vault | Config persists, auth status correctly shown | ⬜ |
-| 8. If session expired | Message: "Session expired", reason: "SESSION_EXPIRED" | ⬜ |
-| 9. Click Refresh button | Session refreshed or prompts re-login | ⬜ |
+| Step                                     | Expected Result                                                     | ✅  |
+| ---------------------------------------- | ------------------------------------------------------------------- | --- |
+| 1. Configure URL + key                   | Settings saved, status shows "Not tested"                           | ⬜  |
+| 2. Click Test Connection (no auth)       | Status: "Needs login", reason: "NO_SESSION"                         | ⬜  |
+| 3. Sign in with email/password           | Success toast, "Signed in to Vault (Project Auth)" shown            | ⬜  |
+| 4. Click Test Connection (authenticated) | Status: "Connected", reason: "AUTHENTICATED"                        | ⬜  |
+| 5. Click Copy Diagnostics                | Report includes `Auth Reason: AUTHENTICATED`, `User Email: <email>` | ⬜  |
+| 6. Click Sign Out                        | Success toast, sign-in form reappears                               | ⬜  |
+| 7. Restart app, check Vault              | Config persists, auth status correctly shown                        | ⬜  |
+| 8. If session expired                    | Message: "Session expired", reason: "SESSION_EXPIRED"               | ⬜  |
+| 9. Click Refresh button                  | Session refreshed or prompts re-login                               | ⬜  |
 
 **Screenshots Checklist:**
 
