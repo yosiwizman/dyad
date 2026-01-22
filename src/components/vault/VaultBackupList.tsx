@@ -7,6 +7,8 @@ import {
   Calendar,
   HardDrive,
   Package,
+  WifiOff,
+  KeyRound,
 } from "lucide-react";
 import { IpcClient } from "@/ipc/ipc_client";
 import { showSuccess, showError } from "@/lib/toast";
@@ -112,11 +114,54 @@ export function VaultBackupList() {
   }
 
   if (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const isNetworkError = errorMessage.includes("fetch") || errorMessage.includes("network") || errorMessage.includes("Failed to fetch");
+    const isAuthError = errorMessage.includes("authenticated") || errorMessage.includes("token") || errorMessage.includes("401") || errorMessage.includes("unauthorized");
+
+    if (isNetworkError) {
+      return (
+        <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-md flex items-start gap-2">
+          <WifiOff className="h-4 w-4 text-orange-600 dark:text-orange-400 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm text-orange-700 dark:text-orange-300">
+              Unable to connect to Vault
+            </p>
+            <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+              Check your internet connection and try again.
+            </p>
+            <Button
+              onClick={() => refetch()}
+              variant="outline"
+              size="sm"
+              className="mt-2"
+            >
+              Retry
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    if (isAuthError) {
+      return (
+        <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-md flex items-start gap-2">
+          <KeyRound className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              Authentication required
+            </p>
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+              Your session may have expired. Please sign in again.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-md">
         <p className="text-sm text-red-700 dark:text-red-300">
-          Failed to load backups:{" "}
-          {error instanceof Error ? error.message : "Unknown error"}
+          Failed to load backups: {errorMessage}
         </p>
         <Button
           onClick={() => refetch()}

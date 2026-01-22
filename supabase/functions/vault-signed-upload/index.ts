@@ -6,7 +6,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const BUCKET_NAME = "abba-vault";
-const SIGNED_URL_EXPIRY_SECONDS = 7200; // 2 hours
+// Note: Signed upload URLs expire in ~2 hours (Supabase default)
 
 interface SignedUploadRequest {
   projectName: string;
