@@ -2,6 +2,19 @@
 -- This migration creates the vault_backups table and storage policies for ABBA AI cloud backup
 
 -- ============================================
+-- Storage Bucket: abba-vault
+-- ============================================
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+    'abba-vault',
+    'abba-vault',
+    false,
+    524288000, -- 500MB max file size
+    ARRAY['application/zip', 'application/x-zip-compressed']
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- ============================================
 -- Table: vault_backups
 -- ============================================
 CREATE TABLE IF NOT EXISTS public.vault_backups (
