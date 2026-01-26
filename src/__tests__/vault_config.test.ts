@@ -185,7 +185,7 @@ describe("vault_config", () => {
     it("should return true when both URL and key are present", () => {
       const result = isVaultConfigured(
         "https://test.supabase.co",
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.test"
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.test",
       );
       expect(result).toBe(true);
     });

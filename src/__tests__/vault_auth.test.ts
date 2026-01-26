@@ -184,10 +184,7 @@ describe("Vault Auth IPC Channels", () => {
     "vault:auth-anonymous",
   ];
 
-  const ZERO_CONFIG_CHANNELS = [
-    "vault:auto-init",
-    "vault:ensure-auth",
-  ];
+  const ZERO_CONFIG_CHANNELS = ["vault:auto-init", "vault:ensure-auth"];
 
   it("should have consistent channel naming for auth", () => {
     AUTH_CHANNELS.forEach((channel) => {

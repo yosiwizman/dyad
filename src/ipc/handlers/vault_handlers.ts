@@ -300,14 +300,17 @@ async function signInAnonymously(): Promise<VaultAuthSession> {
   // If standard signup doesn't support anonymous, try the dedicated endpoint
   if (!response.ok) {
     // Try the anonymous sign-in endpoint (Supabase v2.64+)
-    const anonResponse = await fetch(`${url}/auth/v1/token?grant_type=anonymous`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: anonKey,
+    const anonResponse = await fetch(
+      `${url}/auth/v1/token?grant_type=anonymous`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: anonKey,
+        },
+        body: JSON.stringify({}),
       },
-      body: JSON.stringify({}),
-    });
+    );
 
     if (!anonResponse.ok) {
       const error = await anonResponse.json().catch(() => ({}));
@@ -349,7 +352,10 @@ function createAnonymousSession(data: any): VaultAuthSession {
     },
   });
 
-  logger.info("Anonymous sign-in successful, userId:", data.user?.id?.slice(0, 8));
+  logger.info(
+    "Anonymous sign-in successful, userId:",
+    data.user?.id?.slice(0, 8),
+  );
   return session;
 }
 
@@ -971,7 +977,11 @@ export function registerVaultHandlers() {
    */
   handle(
     "vault:auth-anonymous",
-    async (): Promise<{ success: boolean; error?: string; userId?: string }> => {
+    async (): Promise<{
+      success: boolean;
+      error?: string;
+      userId?: string;
+    }> => {
       try {
         const session = await signInAnonymously();
         return { success: true, userId: session.userId };

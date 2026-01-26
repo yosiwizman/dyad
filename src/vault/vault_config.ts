@@ -155,11 +155,11 @@ export function maskKey(key: string): string {
 /**
  * Default Vault configuration from environment.
  * These values are injected at build time via GitHub Actions secrets.
- * 
+ *
  * Env var names:
  * - ABBA_VAULT_SUPABASE_URL: The Supabase project URL
  * - ABBA_VAULT_SUPABASE_ANON_KEY: The Supabase anon/public key (safe for client)
- * 
+ *
  * Fallbacks for backwards compatibility:
  * - VAULT_SUPABASE_URL
  * - VAULT_SUPABASE_ANON_KEY
@@ -185,5 +185,7 @@ export function hasEnvDefaults(): boolean {
  * Check if the Vault is fully configured (URL and key present).
  */
 export function isVaultConfigured(url: string, anonKey: string): boolean {
-  return !!url && url.trim().length > 0 && !!anonKey && anonKey.trim().length > 0;
+  return (
+    !!url && url.trim().length > 0 && !!anonKey && anonKey.trim().length > 0
+  );
 }

@@ -49,10 +49,10 @@ To enable zero-config for your fork/deployment:
 1. Go to your GitHub repository → Settings → Secrets and variables → Actions
 2. Add the following secrets:
 
-| Secret Name | Description | Example |
-|-------------|-------------|---------|
-| `ABBA_VAULT_SUPABASE_URL` | Your Supabase project URL | `https://xxxxx.supabase.co` |
-| `ABBA_VAULT_SUPABASE_ANON_KEY` | Supabase anon/public key | `eyJhbGciOiJIUzI1NiIs...` |
+| Secret Name                    | Description               | Example                     |
+| ------------------------------ | ------------------------- | --------------------------- |
+| `ABBA_VAULT_SUPABASE_URL`      | Your Supabase project URL | `https://xxxxx.supabase.co` |
+| `ABBA_VAULT_SUPABASE_ANON_KEY` | Supabase anon/public key  | `eyJhbGciOiJIUzI1NiIs...`   |
 
 **Important:** Only use the **anon/public key**, never the service_role key.
 
@@ -106,6 +106,7 @@ Dashboard → Authentication → Settings → Enable anonymous sign-ins
 ### Session keeps expiring
 
 Anonymous sessions have a 1-hour default expiry. The app should auto-refresh, but if issues persist:
+
 1. Go to Settings → Vault
 2. Click "Test Connection" to force a session refresh
 3. Or sign in with email/password for a longer-lived session

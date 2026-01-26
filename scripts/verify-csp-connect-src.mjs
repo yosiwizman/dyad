@@ -23,10 +23,7 @@ const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, "..");
 
 // Required domains for Vault connectivity
-const REQUIRED_DOMAINS = [
-  "*.supabase.co",
-  "*.supabase.in",
-];
+const REQUIRED_DOMAINS = ["*.supabase.co", "*.supabase.in"];
 
 // Files that might contain CSP configuration
 const CSP_CONFIG_LOCATIONS = [
@@ -74,16 +71,14 @@ function hasCSPConfig(content) {
  */
 function checkCSPDomains(content, filePath) {
   // Look for connect-src directive
-  const connectSrcMatch = content.match(
-    /connect-src\s+([^;]+)/i
-  );
+  const connectSrcMatch = content.match(/connect-src\s+([^;]+)/i);
 
   if (!connectSrcMatch) {
     // If there's CSP but no connect-src, that's potentially problematic
     if (content.match(/Content-Security-Policy/i)) {
       logWarning(
         `${filePath}: Has CSP but no explicit connect-src directive. ` +
-          `Ensure it doesn't block Supabase endpoints.`
+          `Ensure it doesn't block Supabase endpoints.`,
       );
     }
     return;
@@ -98,7 +93,7 @@ function checkCSPDomains(content, filePath) {
   ) {
     logError(
       `${filePath}: connect-src is set to 'self' only, which blocks Supabase. ` +
-        `Add: ${REQUIRED_DOMAINS.join(" ")}`
+        `Add: ${REQUIRED_DOMAINS.join(" ")}`,
     );
     return;
   }
@@ -115,7 +110,7 @@ function checkCSPDomains(content, filePath) {
       if (!connectSrcValue.includes(httpsPattern)) {
         logError(
           `${filePath}: connect-src missing required domain: ${domain}. ` +
-            `Current value: ${connectSrcValue.trim()}`
+            `Current value: ${connectSrcValue.trim()}`,
         );
       }
     }
@@ -199,7 +194,7 @@ function verifyFetchCapabilities() {
     // Check for any custom fetch polyfills that might cause issues
     if (content.includes("node-fetch") || content.includes("cross-fetch")) {
       logWarning(
-        "main.ts may use fetch polyfill. Native fetch in Node.js 18+ is recommended."
+        "main.ts may use fetch polyfill. Native fetch in Node.js 18+ is recommended.",
       );
     }
   }
@@ -212,7 +207,7 @@ function verifyFetchCapabilities() {
     // These should be set correctly for security
     if (content.includes("nodeIntegration: true")) {
       logWarning(
-        "forge.config.ts has nodeIntegration: true. This is not recommended."
+        "forge.config.ts has nodeIntegration: true. This is not recommended.",
       );
     }
   }
@@ -226,7 +221,12 @@ function verifyFetchCapabilities() {
 function verifyVaultClient() {
   console.log("\n📦 Verifying Vault client configuration...\n");
 
-  const vaultClientPath = path.join(ROOT_DIR, "src", "vault", "vault_client.ts");
+  const vaultClientPath = path.join(
+    ROOT_DIR,
+    "src",
+    "vault",
+    "vault_client.ts",
+  );
 
   if (!fs.existsSync(vaultClientPath)) {
     logError("vault_client.ts not found");
@@ -243,10 +243,7 @@ function verifyVaultClient() {
   }
 
   // Check for proper error handling
-  if (
-    content.includes("response.ok") ||
-    content.includes("!response.ok")
-  ) {
+  if (content.includes("response.ok") || content.includes("!response.ok")) {
     logSuccess("Vault client has response status checking");
   } else {
     logWarning("Vault client may not properly check response status");
@@ -266,7 +263,7 @@ console.log("\n" + "=".repeat(50));
 
 if (!foundCSP) {
   logSuccess(
-    "No explicit CSP configuration found. Electron defaults allow all connections."
+    "No explicit CSP configuration found. Electron defaults allow all connections.",
   );
 }
 
@@ -281,6 +278,8 @@ if (errors.length === 0) {
   console.log(`\n❌ ${errors.length} error(s) found:\n`);
   errors.forEach((err, i) => console.log(`  ${i + 1}. ${err}`));
   console.log("\nTo fix: Ensure CSP connect-src includes:");
-  console.log("  connect-src 'self' https://*.supabase.co https://*.supabase.in\n");
+  console.log(
+    "  connect-src 'self' https://*.supabase.co https://*.supabase.in\n",
+  );
   process.exit(1);
 }
