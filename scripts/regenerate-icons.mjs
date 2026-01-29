@@ -14,6 +14,9 @@
  *   - assets/icon/logo.icns (macOS app icon)
  *   - assets/icon/logo.png (Linux/general - 1024px)
  *   - assets/icon/tray.ico (Windows tray - 16/24/32/48/64)
+ *   - scaffold/public/favicon.ico (Web favicon - 32/48)
+ *   - scaffold/public/apple-touch-icon.png (iOS icon - 180px)
+ *   - scaffold/public/site.webmanifest (Web manifest for PWA)
  */
 
 import fs from "fs";
@@ -32,10 +35,13 @@ const ICON_DIR = path.join(ASSETS_DIR, "icon");
 const BRAND_DIR = path.join(ASSETS_DIR, "brand");
 const SVG_SOURCE = path.join(ASSETS_DIR, "logo.svg");
 const TEMP_DIR = path.join(ROOT, ".icon-temp");
+const SCAFFOLD_PUBLIC = path.join(ROOT, "scaffold", "public");
 
 // Icon sizes
 const APP_ICON_SIZES = [16, 32, 48, 64, 128, 256];
 const TRAY_ICON_SIZES = [16, 24, 32, 48, 64];
+const WEB_FAVICON_SIZES = [32, 48];
+const APPLE_TOUCH_ICON_SIZE = 180;
 
 async function ensureDir(dir) {
   if (!fs.existsSync(dir)) {
@@ -132,8 +138,49 @@ async function main() {
     });
     console.log(`  ✓ Generated ICNS: ${path.join(ICON_DIR, "logo.icns")}\n`);
 
-    // Step 8: Cleanup temp files
-    console.log("8. Cleaning up temporary files...");
+    // Step 8: Generate web favicon for scaffold
+    console.log("8. Generating web favicon for scaffold...");
+    const webPngs = [];
+    for (const size of WEB_FAVICON_SIZES) {
+      const pngPath = path.join(TEMP_DIR, `web-${size}.png`);
+      await renderSvgToPng(SVG_SOURCE, pngPath, size);
+      webPngs.push(pngPath);
+    }
+    const webFaviconPath = path.join(SCAFFOLD_PUBLIC, "favicon.ico");
+    await generateIco(webPngs, webFaviconPath);
+    console.log(`   Saved: ${webFaviconPath}\n`);
+
+    // Step 9: Generate apple-touch-icon for scaffold
+    console.log("9. Generating apple-touch-icon for scaffold...");
+    const appleTouchIconPath = path.join(
+      SCAFFOLD_PUBLIC,
+      "apple-touch-icon.png",
+    );
+    await renderSvgToPng(SVG_SOURCE, appleTouchIconPath, APPLE_TOUCH_ICON_SIZE);
+    console.log(`   Saved: ${appleTouchIconPath}\n`);
+
+    // Step 10: Generate site.webmanifest for scaffold
+    console.log("10. Generating site.webmanifest for scaffold...");
+    const webmanifest = {
+      name: "ABBA AI App",
+      short_name: "ABBA",
+      icons: [
+        {
+          src: "/apple-touch-icon.png",
+          sizes: "180x180",
+          type: "image/png",
+        },
+      ],
+      theme_color: "#8B5CF6",
+      background_color: "#ffffff",
+      display: "standalone",
+    };
+    const webmanifestPath = path.join(SCAFFOLD_PUBLIC, "site.webmanifest");
+    fs.writeFileSync(webmanifestPath, JSON.stringify(webmanifest, null, 2));
+    console.log(`   Saved: ${webmanifestPath}\n`);
+
+    // Step 11: Cleanup temp files
+    console.log("11. Cleaning up temporary files...");
     fs.rmSync(TEMP_DIR, { recursive: true, force: true });
     console.log("  ✓ Cleaned up temp directory\n");
 
@@ -147,6 +194,8 @@ async function main() {
       path.join(ICON_DIR, "logo.icns"),
       path.join(ICON_DIR, "logo.png"),
       path.join(ICON_DIR, "tray.ico"),
+      path.join(SCAFFOLD_PUBLIC, "favicon.ico"),
+      path.join(SCAFFOLD_PUBLIC, "apple-touch-icon.png"),
     ];
 
     for (const file of files) {

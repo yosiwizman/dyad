@@ -1,0 +1,14 @@
+{
+  "name": "ABBA AI App",
+  "short_name": "ABBA",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#8B5CF6",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}

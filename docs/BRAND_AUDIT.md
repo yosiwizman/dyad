@@ -127,7 +127,7 @@ These are **functional XML-like tags** used for LLM communication. Changing them
 
 ## Summary
 
-### Fixed (13 items)
+### Fixed (17 items)
 
 - Repository URLs in package.json and forge.config.ts
 - Publisher config in forge.config.ts
@@ -136,6 +136,10 @@ These are **functional XML-like tags** used for LLM communication. Changing them
 - Function names in paths.ts and related imports
 - README links
 - E2E workflow template reference
+- **Scaffold template favicon** (`scaffold/public/favicon.ico`) - replaced Dyad "d" with ABBA "A" logo
+- **Scaffold apple-touch-icon** (`scaffold/public/apple-touch-icon.png`) - ABBA branded
+- **Scaffold site.webmanifest** - name "ABBA AI App", short_name "ABBA"
+- **Scaffold index.html** - favicon, apple-touch-icon, and manifest links added
 
 ### Intentionally Preserved (260+ items)
 
