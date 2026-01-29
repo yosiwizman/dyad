@@ -80,7 +80,24 @@ When profiles are introduced:
 - `src/profiles/profile_types.ts` - Zod schemas and types
 - `src/profiles/profile_storage.ts` - Storage and hashing utilities
 - `src/ipc/handlers/profile_handlers.ts` - IPC handlers
+- `src/ipc/ipc_host.ts` - Imports and calls `registerProfileHandlers()`
 - `src/preload.ts` - IPC channel allowlist
+
+### IPC Handler Registration
+
+Profile IPC handlers are registered in `ipc_host.ts`:
+
+```typescript
+import { registerProfileHandlers } from "./handlers/profile_handlers";
+// ...
+registerProfileHandlers();
+```
+
+**Important**: If handlers are not registered, IPC calls will fail with:
+
+> "No handler registered for 'profile:xxx'"
+
+Tests in `src/__tests__/profile_ipc_contract.test.ts` verify the IPC contract.
 
 ### Creating a Profile
 
@@ -122,9 +139,22 @@ Available avatar colors for profiles:
 | Cyan                | `#06B6D4` |
 | Indigo              | `#6366F1` |
 
-## Lock Screen UI (v0.2.15)
+## Lock Screen UI (v0.2.15+)
 
 The ProfileLockScreen component provides:
+
+### Window Controls (v0.2.16)
+
+The lock screen renders outside the main app layout, so it includes its own window controls:
+
+- **Windows**: Custom minimize/maximize/close buttons in top-right corner
+- **macOS**: Uses native traffic light controls (no custom buttons needed)
+
+The window controls are rendered by `LockScreenWindowControls`, which:
+
+1. Checks the platform via `IpcClient.getInstance().getSystemPlatform()`
+2. Only renders on non-darwin (Windows/Linux) platforms
+3. Uses the same IPC channels as the main title bar: `window:minimize`, `window:maximize`, `window:close`
 
 ### Profile Selection
 
