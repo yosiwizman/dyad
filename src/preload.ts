@@ -192,6 +192,17 @@ const validInvokeChannels = [
   "vault:auth-anonymous",
   "vault:auto-init",
   "vault:ensure-auth",
+  // Local Profiles
+  "profile:list",
+  "profile:create",
+  "profile:delete",
+  "profile:verify-pin",
+  "profile:get-active",
+  "profile:logout",
+  "profile:has-profiles",
+  "profile:get",
+  "profile:update",
+  "profile:change-pin",
   // Test-only channels
   // These should ALWAYS be guarded with IS_TEST_BUILD in the main process.
   // We can't detect with IS_TEST_BUILD in the preload script because

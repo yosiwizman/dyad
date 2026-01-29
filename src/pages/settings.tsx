@@ -24,6 +24,11 @@ import { AutoUpdateSwitch } from "@/components/AutoUpdateSwitch";
 import { ReleaseChannelSelector } from "@/components/ReleaseChannelSelector";
 import { NeonIntegration } from "@/components/NeonIntegration";
 import { VaultIntegration } from "@/components/VaultIntegration";
+import {
+  isBellaModeWithSettings,
+  BELLA_MODE_PLACEHOLDER_MESSAGE,
+} from "@/shared/bella_mode";
+import { Info } from "lucide-react";
 import { RuntimeModeSelector } from "@/components/RuntimeModeSelector";
 import { NodePathSelector } from "@/components/NodePathSelector";
 import { ToolsMcpSettings } from "@/components/settings/ToolsMcpSettings";
@@ -123,13 +128,17 @@ export default function SettingsPage() {
             <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
               Integrations
             </h2>
-            <div className="space-y-4">
-              <GitHubIntegration />
-              <VercelIntegration />
-              <SupabaseIntegration />
-              <NeonIntegration />
-              <VaultIntegration />
-            </div>
+            {isBellaModeWithSettings(settings ?? undefined) ? (
+              <BellaModeIntegrationsPlaceholder />
+            ) : (
+              <div className="space-y-4">
+                <GitHubIntegration />
+                <VercelIntegration />
+                <SupabaseIntegration />
+                <NeonIntegration />
+                <VaultIntegration />
+              </div>
+            )}
           </div>
 
           {/* Agent v2 Permissions */}
@@ -164,7 +173,7 @@ export default function SettingsPage() {
               Experiments
             </h2>
             <div className="space-y-4">
-              <div className="space-y-1 mt-4">
+              <div className="space-y-1">
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="enable-native-git"
@@ -180,6 +189,27 @@ export default function SettingsPage() {
                 <div className="text-sm text-gray-500 dark:text-gray-400">
                   This doesn't require any external Git installation and offers
                   a faster, native-Git performance experience.
+                </div>
+              </div>
+
+              <div className="space-y-1 mt-4">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="enable-developer-mode"
+                    checked={!!settings?.enableDeveloperMode}
+                    onCheckedChange={(checked) => {
+                      updateSettings({
+                        enableDeveloperMode: checked,
+                      });
+                    }}
+                  />
+                  <Label htmlFor="enable-developer-mode">
+                    Developer Mode (Show Integrations)
+                  </Label>
+                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  Enable this to show GitHub, Supabase, Vercel, and Neon
+                  integrations. For advanced users only.
                 </div>
               </div>
             </div>
@@ -346,6 +376,29 @@ export function AISettings() {
 
       <div className="mt-4">
         <MaxChatTurnsSelector />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Placeholder shown in Bella Mode when integrations are hidden
+ */
+function BellaModeIntegrationsPlaceholder() {
+  return (
+    <div className="flex items-start gap-3 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+      <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+      <div>
+        <h3 className="text-sm font-medium text-blue-900 dark:text-blue-100">
+          Managed by ABBA
+        </h3>
+        <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+          {BELLA_MODE_PLACEHOLDER_MESSAGE}
+        </p>
+        <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+          To enable developer integrations, turn on Developer Mode in the
+          Experiments section below.
+        </p>
       </div>
     </div>
   );

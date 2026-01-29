@@ -24,6 +24,8 @@ import { selectedAppIdAtom } from "@/atoms/appAtoms";
 import { IpcClient } from "@/ipc/ipc_client";
 import { useNavigate } from "@tanstack/react-router";
 import { NeonConfigure } from "./NeonConfigure";
+import { useSettings } from "@/hooks/useSettings";
+import { isBellaModeWithSettings } from "@/shared/bella_mode";
 
 const EnvironmentVariablesTitle = () => (
   <div className="flex items-center gap-2">
@@ -47,6 +49,8 @@ const EnvironmentVariablesTitle = () => (
 export const ConfigurePanel = () => {
   const selectedAppId = useAtomValue(selectedAppIdAtom);
   const queryClient = useQueryClient();
+  const { settings } = useSettings();
+  const bellaModeActive = isBellaModeWithSettings(settings ?? undefined);
 
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editingKeyValue, setEditingKeyValue] = useState("");
@@ -398,11 +402,12 @@ export const ConfigurePanel = () => {
         </CardContent>
       </Card>
 
-      {/* Neon Database Configuration */}
-      {/* Neon Connector */}
-      <div className="grid grid-cols-1 gap-6">
-        <NeonConfigure />
-      </div>
+      {/* Neon Database Configuration - hidden in Bella Mode */}
+      {!bellaModeActive && (
+        <div className="grid grid-cols-1 gap-6">
+          <NeonConfigure />
+        </div>
+      )}
     </div>
   );
 };
