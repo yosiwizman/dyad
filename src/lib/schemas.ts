@@ -323,6 +323,7 @@ export const UserSettingsSchema = z
 
     enableAutoFixProblems: z.boolean().optional(),
     enableNativeGit: z.boolean().optional(),
+    enableDeveloperMode: z.boolean().optional(),
     enableAutoUpdate: z.boolean(),
     releaseChannel: ReleaseChannelSchema,
     runtimeMode2: RuntimeMode2Schema.optional(),
