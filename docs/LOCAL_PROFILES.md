@@ -122,8 +122,42 @@ Available avatar colors for profiles:
 | Cyan                | `#06B6D4` |
 | Indigo              | `#6366F1` |
 
+## Lock Screen UI (v0.2.15)
+
+The ProfileLockScreen component provides:
+
+### Profile Selection
+
+- Large, colorful profile cards with avatars
+- Tap to select, then enter PIN
+- "Add Profile" button for creating new profiles
+
+### PIN Entry
+
+- Kid-friendly number pad with large buttons
+- Visual feedback (dots fill as you type)
+- Rate limiting: 3 failed attempts → 30s cooldown
+- Clear error messages
+
+### Create Profile Wizard
+
+1. Enter name (with friendly prompt)
+2. Create 4-digit PIN
+3. Confirm PIN
+4. Pick avatar color
+5. Auto-login after creation
+
+### Components
+
+- `src/components/profile/ProfileLockScreen.tsx` - Main lock screen
+- `src/components/profile/ProfileCard.tsx` - Profile avatar display
+- `src/components/profile/PinInput.tsx` - Number pad
+- `src/components/profile/CreateProfileForm.tsx` - Creation wizard
+- `src/contexts/ProfileContext.tsx` - Global profile state
+
 ## Future Enhancements
 
-- **Lock Screen UI**: Visual profile selector with PIN pad
-- **Profile Switching**: Switch between profiles without restart
-- **Profile Management UI**: Create/edit/delete profiles in Settings
+- **Full Workspace Isolation**: Integrate profile paths with app loading
+- **Legacy Migration UI**: Dialog to migrate existing apps
+- **Profile Management UI**: Edit/delete profiles in Settings
+- **Switch Profile**: Quick-switch from sidebar

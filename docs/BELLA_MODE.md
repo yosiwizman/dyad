@@ -84,8 +84,28 @@ if (isBellaModeWithSettings(settings)) {
 }
 ```
 
+## Phase 2 Features (v0.2.15)
+
+### Profile Lock Screen
+
+When Bella Mode is active, users see a lock screen before accessing the app:
+
+- **First Run**: Profile creation wizard (name → PIN → confirm PIN → avatar color)
+- **Returning Users**: Profile selector with PIN entry
+- **Rate Limiting**: 3 failed PIN attempts → 30-second cooldown
+
+### ProfileContext
+
+Global state management for active profile:
+
+```typescript
+import { useProfile } from "@/contexts/ProfileContext";
+
+const { activeProfile, login, logout, shouldShowLockScreen } = useProfile();
+```
+
 ## Future Enhancements
 
-- **Profile Lock Screen**: First-run profile creation with PIN
-- **Workspace Isolation**: Per-profile app storage
+- **Workspace Isolation**: Per-profile app storage (path helpers ready)
+- **Legacy Migration**: Prompt to migrate existing apps to profile
 - **Managed Publishing**: Backend broker for kid-safe publishing

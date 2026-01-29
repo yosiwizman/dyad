@@ -6,6 +6,8 @@ import { Toaster } from "sonner";
 import { TitleBar } from "./TitleBar";
 import { useEffect, type ReactNode } from "react";
 import { useRunApp } from "@/hooks/useRunApp";
+import { useProfile } from "@/contexts/ProfileContext";
+import { ProfileLockScreen } from "@/components/profile/ProfileLockScreen";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
   appConsoleEntriesAtom,
@@ -29,6 +31,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   const setChatInput = useSetAtom(chatInputValueAtom);
   const selectedAppId = useAtomValue(selectedAppIdAtom);
   const setConsoleEntries = useSetAtom(appConsoleEntriesAtom);
+  const { shouldShowLockScreen } = useProfile();
 
   useEffect(() => {
     const zoomLevel = settings?.zoomLevel ?? DEFAULT_ZOOM_LEVEL;
@@ -80,6 +83,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     setSelectedComponentsPreview([]);
     setConsoleEntries([]);
   }, [selectedAppId]);
+
+  // Show lock screen if needed (Bella Mode and no active profile)
+  if (shouldShowLockScreen) {
+    return (
+      <ThemeProvider>
+        <ProfileLockScreen />
+      </ThemeProvider>
+    );
+  }
 
   return (
     <>
