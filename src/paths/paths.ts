@@ -4,6 +4,9 @@ import { IS_TEST_BUILD } from "../ipc/utils/test_utils";
 
 /**
  * Gets the base abba-ai-apps directory path (without a specific app subdirectory)
+ * This is the root directory that contains:
+ * - Legacy apps (from before profiles existed)
+ * - profiles/ directory containing per-profile workspaces
  */
 export function getAbbaAppsBaseDirectory(): string {
   if (IS_TEST_BUILD) {
@@ -13,6 +16,33 @@ export function getAbbaAppsBaseDirectory(): string {
   return path.join(os.homedir(), "abba-ai-apps");
 }
 
+/**
+ * Gets the profiles root directory
+ * Structure: ~/abba-ai-apps/profiles/
+ */
+export function getProfilesRootDirectory(): string {
+  return path.join(getAbbaAppsBaseDirectory(), "profiles");
+}
+
+/**
+ * Gets the workspace directory for a specific profile
+ * Structure: ~/abba-ai-apps/profiles/<profileId>/
+ *
+ * @param profileId - The UUID of the profile
+ */
+export function getProfileAppsDirectory(profileId: string): string {
+  return path.join(getProfilesRootDirectory(), profileId);
+}
+
+/**
+ * Gets the legacy apps directory (apps created before profiles existed)
+ * These are apps directly in ~/abba-ai-apps/ (not in profiles/)
+ * Used for backward compatibility and migration
+ */
+export function getLegacyAppsDirectory(): string {
+  return getAbbaAppsBaseDirectory();
+}
+
 export function getAbbaAppPath(appPath: string): string {
   // If appPath is already absolute, use it as-is
   if (path.isAbsolute(appPath)) {
@@ -20,6 +50,19 @@ export function getAbbaAppPath(appPath: string): string {
   }
   // Otherwise, use the default base path
   return path.join(getAbbaAppsBaseDirectory(), appPath);
+}
+
+/**
+ * Gets the full path for an app within a profile's workspace
+ *
+ * @param profileId - The UUID of the profile
+ * @param appPath - The relative app path (e.g., "my-app")
+ */
+export function getProfileAppPath(profileId: string, appPath: string): string {
+  if (path.isAbsolute(appPath)) {
+    return appPath;
+  }
+  return path.join(getProfileAppsDirectory(profileId), appPath);
 }
 
 export function getTypeScriptCachePath(): string {

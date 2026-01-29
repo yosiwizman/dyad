@@ -18,6 +18,7 @@ import {
   pendingAgentConsentsAtom,
   agentTodosByChatIdAtom,
 } from "./atoms/chatAtoms";
+import { ProfileProvider } from "./contexts/ProfileContext";
 
 // @ts-ignore
 console.log("Running in mode:", import.meta.env.MODE);
@@ -214,7 +215,9 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <PostHogProvider client={posthogClient}>
-        <App />
+        <ProfileProvider>
+          <App />
+        </ProfileProvider>
       </PostHogProvider>
     </QueryClientProvider>
   </StrictMode>,

@@ -96,6 +96,11 @@ import type {
 import type { Template } from "../shared/templates";
 import type { Theme } from "../shared/themes";
 import type {
+  ProfileSummary,
+  CreateProfileInput,
+  ActiveProfileSession,
+} from "../profiles/profile_types";
+import type {
   AppChatContext,
   AppSearchResult,
   ChatSearchResult,
@@ -1772,4 +1777,63 @@ export class IpcClient {
   public async clearLogs(appId: number): Promise<void> {
     await this.ipcRenderer.invoke("clear-logs", { appId });
   }
+
+  // --- Profile Management ---
+  public async listProfiles(): Promise<ProfileSummary[]> {
+    return this.ipcRenderer.invoke("profile:list");
+  }
+
+  public async createProfile(
+    input: CreateProfileInput,
+  ): Promise<ProfileSummary> {
+    return this.ipcRenderer.invoke("profile:create", input);
+  }
+
+  public async deleteProfile(profileId: string): Promise<void> {
+    await this.ipcRenderer.invoke("profile:delete", profileId);
+  }
+
+  public async verifyProfilePin(
+    profileId: string,
+    pin: string,
+  ): Promise<{ success: boolean; session?: ActiveProfileSession }> {
+    return this.ipcRenderer.invoke("profile:verify-pin", profileId, pin);
+  }
+
+  public async getActiveProfile(): Promise<ActiveProfileSession | null> {
+    return this.ipcRenderer.invoke("profile:get-active");
+  }
+
+  public async logoutProfile(): Promise<void> {
+    await this.ipcRenderer.invoke("profile:logout");
+  }
+
+  public async hasProfiles(): Promise<boolean> {
+    return this.ipcRenderer.invoke("profile:has-profiles");
+  }
+
+  public async getProfile(profileId: string): Promise<ProfileSummary | null> {
+    return this.ipcRenderer.invoke("profile:get", profileId);
+  }
+
+  public async updateProfile(
+    profileId: string,
+    updates: { name?: string; avatarColor?: string },
+  ): Promise<ProfileSummary> {
+    return this.ipcRenderer.invoke("profile:update", profileId, updates);
+  }
+
+  public async changeProfilePin(
+    profileId: string,
+    currentPin: string,
+    newPin: string,
+  ): Promise<boolean> {
+    return this.ipcRenderer.invoke(
+      "profile:change-pin",
+      profileId,
+      currentPin,
+      newPin,
+    );
+  }
+  // --- End Profile Management ---
 }
