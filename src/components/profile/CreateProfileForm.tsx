@@ -36,7 +36,7 @@ export function CreateProfileForm({
   const [name, setName] = useState("");
   const [pin, setPin] = useState("");
   const [_confirmPin, setConfirmPin] = useState("");
-  const [avatarColor, setAvatarColor] = useState(PROFILE_AVATAR_COLORS[0]);
+  const [avatarColor, setAvatarColor] = useState<string>(PROFILE_AVATAR_COLORS[0]);
   const [pinError, setPinError] = useState("");
 
   const handleNameSubmit = (e: React.FormEvent) => {
