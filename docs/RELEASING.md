@@ -9,11 +9,13 @@ Releases are automatically built and published via GitHub Actions when a version
 ### Triggering a Release
 
 1. **Bump version** in `package.json`:
+
    ```bash
    npm version 0.2.X --no-git-tag-version
    ```
 
 2. **Commit and push** the version bump to `main`:
+
    ```bash
    git add package.json package-lock.json
    git commit -m "chore: bump version to 0.2.X"
@@ -21,6 +23,7 @@ Releases are automatically built and published via GitHub Actions when a version
    ```
 
 3. **Create and push tag**:
+
    ```bash
    git tag v0.2.X
    git push origin v0.2.X
@@ -45,13 +48,13 @@ You can also trigger a release manually via the GitHub Actions UI:
 
 Every release MUST contain these assets:
 
-| Asset | Description |
-|-------|-------------|
-| `ABBA.AI-{version}.Setup.exe` | Windows installer |
-| `ABBA.AI-darwin-arm64-{version}.zip` | macOS Apple Silicon |
-| `ABBA.AI-darwin-x64-{version}.zip` | macOS Intel |
-| `abba_ai-{version}-full.nupkg` | Windows auto-update package |
-| `RELEASES` | Windows auto-update manifest |
+| Asset                                | Description                  |
+| ------------------------------------ | ---------------------------- |
+| `ABBA.AI-{version}.Setup.exe`        | Windows installer            |
+| `ABBA.AI-darwin-arm64-{version}.zip` | macOS Apple Silicon          |
+| `ABBA.AI-darwin-x64-{version}.zip`   | macOS Intel                  |
+| `abba_ai-{version}-full.nupkg`       | Windows auto-update package  |
+| `RELEASES`                           | Windows auto-update manifest |
 
 ## Guardrails
 
