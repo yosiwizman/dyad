@@ -26,12 +26,6 @@ const DYAD_LEGACY_CLIENT_ID = "Ov23liWV2HdC0RBLecWx";
 const EXPECTED_MINIMAL_SCOPES = ["read:user", "user:email", "repo"];
 const OVERLY_BROAD_SCOPES = ["admin", "delete_repo", "workflow", "write:org"];
 
-// Files to scan for OAuth configuration
-const OAUTH_CONFIG_FILES = [
-  "src/ipc/handlers/github_handlers.ts",
-  ".env.example",
-];
-
 // Track errors and warnings
 const errors = [];
 const warnings = [];
