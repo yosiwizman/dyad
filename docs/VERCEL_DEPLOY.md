@@ -117,6 +117,16 @@ If you also have GitHub connected, you can optionally link your Vercel project t
 2. Verify your app's build output is valid
 3. Check Vercel's status page for any ongoing issues
 
+### "Invalid channel: vercel:test-connection" or "Invalid channel: vercel:deploy"
+
+**Problem**: Your ABBA AI version is older than v0.2.12 and does not support the direct deploy feature.
+
+**Solution**:
+
+1. Update to ABBA AI v0.2.12 or later
+2. Download the latest version from [GitHub Releases](https://github.com/yosiwizman/dyad/releases)
+3. Restart the application after updating
+
 ## Diagnostics
 
 If you need help debugging, use the **Copy Diagnostics** button in Settings → Integrations. This copies safe diagnostic information (no secrets) that you can share when asking for help.

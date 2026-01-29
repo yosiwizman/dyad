@@ -90,6 +90,8 @@ const validInvokeChannels = [
   "vercel:connect-existing-project",
   "vercel:get-deployments",
   "vercel:disconnect",
+  "vercel:test-connection",
+  "vercel:deploy",
   "get-app-version",
   "reload-env-path",
   "get-proposal",

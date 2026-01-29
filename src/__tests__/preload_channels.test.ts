@@ -31,6 +31,19 @@ describe("preload channel allowlist", () => {
     "vault:delete-backup",
   ];
 
+  // Required Vercel channels that must be in the allowlist (including direct deploy)
+  const requiredVercelChannels = [
+    "vercel:save-token",
+    "vercel:list-projects",
+    "vercel:is-project-available",
+    "vercel:create-project",
+    "vercel:connect-existing-project",
+    "vercel:get-deployments",
+    "vercel:disconnect",
+    "vercel:test-connection",
+    "vercel:deploy",
+  ];
+
   describe("Vault channels", () => {
     it.each(requiredVaultChannels)(
       "should include %s in validInvokeChannels",
@@ -41,6 +54,22 @@ describe("preload channel allowlist", () => {
 
     it("should have all required Vault channels", () => {
       const missingChannels = requiredVaultChannels.filter(
+        (channel) => !channelListContent.includes(`"${channel}"`),
+      );
+      expect(missingChannels).toEqual([]);
+    });
+  });
+
+  describe("Vercel channels", () => {
+    it.each(requiredVercelChannels)(
+      "should include %s in validInvokeChannels",
+      (channel) => {
+        expect(channelListContent).toContain(`"${channel}"`);
+      },
+    );
+
+    it("should have all required Vercel channels", () => {
+      const missingChannels = requiredVercelChannels.filter(
         (channel) => !channelListContent.includes(`"${channel}"`),
       );
       expect(missingChannels).toEqual([]);
