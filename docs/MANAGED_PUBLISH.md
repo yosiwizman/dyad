@@ -14,11 +14,24 @@ No tokens, credentials, or third-party accounts are required.
 
 ## Version 1 (Stub)
 
-v0.2.17 introduces the Managed Publish infrastructure with a **local stub transport** for testing and development. The stub simulates the full publish flow locally:
+v0.2.17 introduced the Managed Publish infrastructure with a **local stub transport** for testing and development.
+
+### v0.2.18 Update: Local Preview Links
+
+As of v0.2.18, the stub transport returns **local file:// URLs** instead of dead `abba.app` links. This allows users to actually verify their app works:
 
 - Creates a real bundle (zip) of the app
 - Simulates publish phases (~15 seconds total)
-- Returns a fake URL: `https://abba.app/p/<publishId>`
+- Returns a local file URL: `file:///C:/Users/.../abba-ai-apps/my-app`
+- Clicking "Open" opens the app folder in the file explorer
+
+**UI Changes:**
+
+- Header shows "Local Preview" with "Stub Mode" badge
+- Button text: "Create Local Preview" instead of "Publish Live"
+- Ready state: "Local preview ready!" instead of "Your app is live!"
+- Amber color scheme indicates local/stub mode
+- Footer note: "Real ABBA Hosting coming soon!"
 
 **Important**: The stub does not actually deploy anything. Real hosting requires the ABBA Broker service (future milestone).
 
@@ -93,7 +106,7 @@ Terminal states: `ready`, `failed`, `cancelled`
 | `ABBA_BROKER_URL` | URL of the ABBA Broker API (optional) |
 | `BROKER_URL`      | Alias for `ABBA_BROKER_URL`           |
 
-If neither is set, the stub transport is used.
+If neither is set, the stub transport is used and returns local `file://` URLs.
 
 ## Usage
 
@@ -147,6 +160,7 @@ Run tests:
 npm test src/__tests__/bundle_utils.test.ts
 npm test src/__tests__/broker_client.test.ts
 npm test src/__tests__/publish_ipc_contract.test.ts
+npm test src/__tests__/stub_transport_local_url.test.ts
 ```
 
 ## Typical Publish Time (Stub)

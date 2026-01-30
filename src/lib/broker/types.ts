@@ -36,6 +36,8 @@ export const PublishStartRequestSchema = z.object({
   profileId: z.string().optional(),
   /** Optional app name for display */
   appName: z.string().optional(),
+  /** Local app path (for stub mode to return file:// URL) */
+  appPath: z.string().optional(),
 });
 
 export type PublishStartRequest = z.infer<typeof PublishStartRequestSchema>;

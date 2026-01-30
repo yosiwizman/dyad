@@ -293,10 +293,17 @@ export function ManagedPublishPanel({
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2">
           <Rocket className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-          Publish Live
+          {isStub ? "Local Preview" : "Publish Live"}
+          {isStub && (
+            <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 rounded-full">
+              Stub Mode
+            </span>
+          )}
         </CardTitle>
         <CardDescription>
-          Publish your app to ABBA hosting with one click
+          {isStub
+            ? "Create a local preview of your app. Real ABBA Hosting coming soon!"
+            : "Publish your app to ABBA hosting with one click"}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -308,18 +315,24 @@ export function ManagedPublishPanel({
             size="lg"
           >
             <Rocket className="w-4 h-4 mr-2" />
-            Publish Live
+            {isStub ? "Create Local Preview" : "Publish Live"}
           </Button>
         )}
 
         {/* Idle with previous URL */}
         {phase === "idle" && publishedUrl && (
           <div className="space-y-4">
-            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+            <div
+              className={`${isStub ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800" : "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"} border rounded-lg p-4`}
+            >
               <div className="flex items-center gap-2 mb-2">
-                <Globe className="w-5 h-5 text-green-600 dark:text-green-400" />
-                <span className="font-medium text-green-800 dark:text-green-200">
-                  Your app is live!
+                <Globe
+                  className={`w-5 h-5 ${isStub ? "text-amber-600 dark:text-amber-400" : "text-green-600 dark:text-green-400"}`}
+                />
+                <span
+                  className={`font-medium ${isStub ? "text-amber-800 dark:text-amber-200" : "text-green-800 dark:text-green-200"}`}
+                >
+                  {isStub ? "Local preview ready!" : "Your app is live!"}
                 </span>
               </div>
               <div className="flex items-center gap-2 mt-2">
@@ -350,8 +363,13 @@ export function ManagedPublishPanel({
               className="w-full"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
-              Publish Update
+              {isStub ? "Refresh Preview" : "Publish Update"}
             </Button>
+            {isStub && (
+              <p className="text-xs text-amber-600 dark:text-amber-400 text-center">
+                This is a local preview. Real ABBA Hosting coming soon!
+              </p>
+            )}
           </div>
         )}
 
@@ -376,7 +394,9 @@ export function ManagedPublishPanel({
               />
               <ProgressStep
                 icon={<Globe className="w-5 h-5" />}
-                label="Deploying to ABBA"
+                label={
+                  isStub ? "Generating local preview" : "Deploying to ABBA"
+                }
                 status={getStepStatus("deploying")}
               />
             </div>
@@ -404,7 +424,7 @@ export function ManagedPublishPanel({
             {/* Stub indicator */}
             {isStub && (
               <p className="text-xs text-amber-600 dark:text-amber-400 text-center">
-                Using local stub (no real hosting yet)
+                Local preview mode — Real ABBA Hosting coming soon!
               </p>
             )}
           </div>
@@ -413,11 +433,17 @@ export function ManagedPublishPanel({
         {/* Ready state */}
         {phase === "ready" && publishedUrl && (
           <div className="space-y-4">
-            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+            <div
+              className={`${isStub ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800" : "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"} border rounded-lg p-4`}
+            >
               <div className="flex items-center gap-2 mb-2">
-                <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
-                <span className="font-medium text-green-800 dark:text-green-200">
-                  Published successfully!
+                <CheckCircle2
+                  className={`w-5 h-5 ${isStub ? "text-amber-600 dark:text-amber-400" : "text-green-600 dark:text-green-400"}`}
+                />
+                <span
+                  className={`font-medium ${isStub ? "text-amber-800 dark:text-amber-200" : "text-green-800 dark:text-green-200"}`}
+                >
+                  {isStub ? "Local preview ready!" : "Published successfully!"}
                 </span>
               </div>
               <div className="flex items-center gap-2 mt-2">
@@ -449,6 +475,11 @@ export function ManagedPublishPanel({
             >
               Done
             </Button>
+            {isStub && (
+              <p className="text-xs text-amber-600 dark:text-amber-400 text-center">
+                This is a local preview. Real ABBA Hosting coming soon!
+              </p>
+            )}
           </div>
         )}
 

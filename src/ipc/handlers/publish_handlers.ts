@@ -121,6 +121,7 @@ async function handlePublishStart(
     bundleSize: bundleInfo.size,
     profileId,
     appName: appRecord.name,
+    appPath, // Pass appPath for stub mode to return local file:// URL
   });
 
   // Track in-progress publish
