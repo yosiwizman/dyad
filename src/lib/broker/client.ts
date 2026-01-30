@@ -141,7 +141,8 @@ export async function publishUpload(
       "Content-Type": "application/octet-stream",
       ...getAuthHeaders(),
     },
-    body: bundleBuffer,
+    // Convert Buffer to Uint8Array for TypeScript compatibility with fetch BodyInit
+    body: new Uint8Array(bundleBuffer),
   });
 
   if (!response.ok) {
