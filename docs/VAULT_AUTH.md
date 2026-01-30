@@ -19,9 +19,11 @@ Vault uses Supabase Auth for user authentication. Users can sign in with email/p
 When a Vault operation (like backup) fails due to an expired token:
 
 1. **Detection**: The error message is analyzed for auth-related keywords:
+
    - `401`, `expired`, `invalid token`, `unauthorized`, `not authenticated`, `session`
 
 2. **Auto-Refresh**: If an auth error is detected, the app automatically:
+
    - Attempts `vault:auth-refresh` IPC call
    - Uses the stored refresh token to get new credentials
    - If successful, retries the original operation
@@ -35,11 +37,11 @@ When a Vault operation (like backup) fails due to an expired token:
 
 ### Error Categories
 
-| Category | Detection Keywords | User Message |
-|----------|-------------------|--------------|
-| Auth Error | `401`, `expired`, `token`, `unauthorized`, `session` | "Your Vault session has expired. Please sign in again." |
+| Category      | Detection Keywords                                         | User Message                                                 |
+| ------------- | ---------------------------------------------------------- | ------------------------------------------------------------ |
+| Auth Error    | `401`, `expired`, `token`, `unauthorized`, `session`       | "Your Vault session has expired. Please sign in again."      |
 | Network Error | `network`, `fetch`, `ENOTFOUND`, `timeout`, `cannot reach` | "Cannot reach Vault. Please check your internet connection." |
-| Other Errors | (none of the above) | Original error message |
+| Other Errors  | (none of the above)                                        | Original error message                                       |
 
 ### Retry Flow
 
@@ -59,26 +61,26 @@ Refresh OK?
 
 ## IPC Channels
 
-| Channel | Description |
-|---------|-------------|
-| `vault:auth-status` | Get current auth status with reason code |
-| `vault:auth-sign-in` | Sign in with email/password |
-| `vault:auth-sign-out` | Sign out and clear session |
-| `vault:auth-refresh` | Manually refresh session token |
-| `vault:auth-anonymous` | Sign in anonymously (if supported) |
-| `vault:ensure-auth` | Ensure valid session (auto-init + anon fallback) |
-| `vault:get-diagnostics` | Get sanitized diagnostics for support |
+| Channel                 | Description                                      |
+| ----------------------- | ------------------------------------------------ |
+| `vault:auth-status`     | Get current auth status with reason code         |
+| `vault:auth-sign-in`    | Sign in with email/password                      |
+| `vault:auth-sign-out`   | Sign out and clear session                       |
+| `vault:auth-refresh`    | Manually refresh session token                   |
+| `vault:auth-anonymous`  | Sign in anonymously (if supported)               |
+| `vault:ensure-auth`     | Ensure valid session (auto-init + anon fallback) |
+| `vault:get-diagnostics` | Get sanitized diagnostics for support            |
 
 ## Auth Status Reasons
 
-| Reason | Description |
-|--------|-------------|
-| `AUTHENTICATED` | Valid session with email/password user |
-| `AUTHENTICATED_ANONYMOUS` | Valid anonymous session |
-| `NO_SESSION` | No stored session |
-| `SESSION_EXPIRED` | Session exists but token expired |
-| `TOKEN_REFRESH_FAILED` | Attempted refresh but it failed |
-| `CONFIG_MISSING` | Vault URL or publishable key not configured |
+| Reason                    | Description                                 |
+| ------------------------- | ------------------------------------------- |
+| `AUTHENTICATED`           | Valid session with email/password user      |
+| `AUTHENTICATED_ANONYMOUS` | Valid anonymous session                     |
+| `NO_SESSION`              | No stored session                           |
+| `SESSION_EXPIRED`         | Session exists but token expired            |
+| `TOKEN_REFRESH_FAILED`    | Attempted refresh but it failed             |
+| `CONFIG_MISSING`          | Vault URL or publishable key not configured |
 
 ## Configuration
 
@@ -88,6 +90,7 @@ Vault requires Supabase configuration:
 2. **Publishable Key**: The `anon` key from Supabase (public, safe for client)
 
 These can be set via:
+
 - Settings UI → Vault section
 - Environment variables: `VAULT_SUPABASE_URL`, `VAULT_SUPABASE_ANON_KEY`
 
@@ -121,6 +124,7 @@ npm test src/__tests__/vault_auth_retry.test.ts
 ```
 
 Tests verify:
+
 - Auth error detection (401, expired, invalid token, etc.)
 - Network error detection (timeout, ENOTFOUND, etc.)
 - Error categorization priority

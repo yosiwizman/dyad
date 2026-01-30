@@ -188,7 +188,10 @@ export async function stubPublishCancel(
 /**
  * Get a human-readable message for the current status
  */
-function getStatusMessage(status: PublishStatus, isStub: boolean = true): string {
+function getStatusMessage(
+  status: PublishStatus,
+  isStub: boolean = true,
+): string {
   switch (status) {
     case "queued":
       return "Preparing to publish...";
@@ -199,7 +202,9 @@ function getStatusMessage(status: PublishStatus, isStub: boolean = true): string
     case "building":
       return isStub ? "Simulating build..." : "Building for production...";
     case "deploying":
-      return isStub ? "Generating local preview..." : "Deploying to ABBA hosting...";
+      return isStub
+        ? "Generating local preview..."
+        : "Deploying to ABBA hosting...";
     case "ready":
       return isStub ? "Ready (local preview)" : "Your app is live!";
     case "failed":

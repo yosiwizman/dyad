@@ -322,10 +322,16 @@ export function ManagedPublishPanel({
         {/* Idle with previous URL */}
         {phase === "idle" && publishedUrl && (
           <div className="space-y-4">
-            <div className={`${isStub ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800" : "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"} border rounded-lg p-4`}>
+            <div
+              className={`${isStub ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800" : "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"} border rounded-lg p-4`}
+            >
               <div className="flex items-center gap-2 mb-2">
-                <Globe className={`w-5 h-5 ${isStub ? "text-amber-600 dark:text-amber-400" : "text-green-600 dark:text-green-400"}`} />
-                <span className={`font-medium ${isStub ? "text-amber-800 dark:text-amber-200" : "text-green-800 dark:text-green-200"}`}>
+                <Globe
+                  className={`w-5 h-5 ${isStub ? "text-amber-600 dark:text-amber-400" : "text-green-600 dark:text-green-400"}`}
+                />
+                <span
+                  className={`font-medium ${isStub ? "text-amber-800 dark:text-amber-200" : "text-green-800 dark:text-green-200"}`}
+                >
                   {isStub ? "Local preview ready!" : "Your app is live!"}
                 </span>
               </div>
@@ -388,7 +394,9 @@ export function ManagedPublishPanel({
               />
               <ProgressStep
                 icon={<Globe className="w-5 h-5" />}
-                label={isStub ? "Generating local preview" : "Deploying to ABBA"}
+                label={
+                  isStub ? "Generating local preview" : "Deploying to ABBA"
+                }
                 status={getStepStatus("deploying")}
               />
             </div>
@@ -425,10 +433,16 @@ export function ManagedPublishPanel({
         {/* Ready state */}
         {phase === "ready" && publishedUrl && (
           <div className="space-y-4">
-            <div className={`${isStub ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800" : "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"} border rounded-lg p-4`}>
+            <div
+              className={`${isStub ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800" : "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"} border rounded-lg p-4`}
+            >
               <div className="flex items-center gap-2 mb-2">
-                <CheckCircle2 className={`w-5 h-5 ${isStub ? "text-amber-600 dark:text-amber-400" : "text-green-600 dark:text-green-400"}`} />
-                <span className={`font-medium ${isStub ? "text-amber-800 dark:text-amber-200" : "text-green-800 dark:text-green-200"}`}>
+                <CheckCircle2
+                  className={`w-5 h-5 ${isStub ? "text-amber-600 dark:text-amber-400" : "text-green-600 dark:text-green-400"}`}
+                />
+                <span
+                  className={`font-medium ${isStub ? "text-amber-800 dark:text-amber-200" : "text-green-800 dark:text-green-200"}`}
+                >
                   {isStub ? "Local preview ready!" : "Published successfully!"}
                 </span>
               </div>

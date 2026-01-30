@@ -24,7 +24,7 @@ function isAuthError(error: Error): boolean {
   return (
     message.includes("401") ||
     message.includes("expired") ||
-    message.includes("invalid") && message.includes("token") ||
+    (message.includes("invalid") && message.includes("token")) ||
     message.includes("unauthorized") ||
     message.includes("not authenticated") ||
     message.includes("session")
@@ -86,9 +86,10 @@ export function VaultBackupButton({
   const attemptRefresh = useCallback(async (): Promise<boolean> => {
     try {
       const ipcClient = IpcClient.getInstance();
-      const result = await ipcClient.invoke<{ success: boolean; error?: string }>(
-        "vault:auth-refresh"
-      );
+      const result = await ipcClient.invoke<{
+        success: boolean;
+        error?: string;
+      }>("vault:auth-refresh");
       return result.success;
     } catch (err) {
       console.error("Session refresh failed:", err);
@@ -135,7 +136,7 @@ export function VaultBackupButton({
             // Refresh failed, show auth dialog
             setIsRetrying(false);
             setAuthError(
-              "Your Vault session has expired. Please sign in again."
+              "Your Vault session has expired. Please sign in again.",
             );
             setShowAuthDialog(true);
             return { success: false, needsAuth: true };
@@ -144,7 +145,7 @@ export function VaultBackupButton({
         throw error;
       }
     },
-    [attemptRefresh]
+    [attemptRefresh],
   );
 
   const backupMutation = useMutation({
@@ -268,15 +269,13 @@ export function VaultBackupButton({
               Vault Session Expired
             </DialogTitle>
             <DialogDescription>
-              {authError || "Your Vault session has expired. Please sign in again to continue."}
+              {authError ||
+                "Your Vault session has expired. Please sign in again to continue."}
             </DialogDescription>
           </DialogHeader>
 
           <div className="py-4">
-            <VaultAuth
-              onAuthSuccess={handleAuthSuccess}
-              compact
-            />
+            <VaultAuth onAuthSuccess={handleAuthSuccess} compact />
           </div>
 
           <DialogFooter className="flex-col sm:flex-row gap-2">
@@ -289,10 +288,7 @@ export function VaultBackupButton({
               <Copy className="h-4 w-4" />
               Copy Diagnostics
             </Button>
-            <Button
-              variant="ghost"
-              onClick={() => setShowAuthDialog(false)}
-            >
+            <Button variant="ghost" onClick={() => setShowAuthDialog(false)}>
               Cancel
             </Button>
           </DialogFooter>

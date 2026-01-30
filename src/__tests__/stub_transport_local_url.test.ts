@@ -107,7 +107,7 @@ describe("stub transport local URL generation", () => {
 
       // Check early status
       const earlyStatus = await stubPublishStatus(startResult.publishId);
-      
+
       // Messages should indicate stub mode
       if (earlyStatus.status === "deploying") {
         expect(earlyStatus.message).toContain("local preview");

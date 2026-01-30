@@ -26,6 +26,7 @@ As of v0.2.18, the stub transport returns **local file:// URLs** instead of dead
 - Clicking "Open" opens the app folder in the file explorer
 
 **UI Changes:**
+
 - Header shows "Local Preview" with "Stub Mode" badge
 - Button text: "Create Local Preview" instead of "Publish Live"
 - Ready state: "Local preview ready!" instead of "Your app is live!"

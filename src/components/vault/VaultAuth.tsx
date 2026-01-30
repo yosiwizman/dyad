@@ -46,7 +46,10 @@ interface VaultAuthProps {
   compact?: boolean;
 }
 
-export function VaultAuth({ onAuthSuccess, compact = false }: VaultAuthProps = {}) {
+export function VaultAuth({
+  onAuthSuccess,
+  compact = false,
+}: VaultAuthProps = {}) {
   const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -149,7 +152,9 @@ export function VaultAuth({ onAuthSuccess, compact = false }: VaultAuthProps = {
 
   if (statusLoading) {
     return (
-      <div className={`flex items-center gap-2 text-sm text-gray-500 ${compact ? "p-2" : "p-3"}`}>
+      <div
+        className={`flex items-center gap-2 text-sm text-gray-500 ${compact ? "p-2" : "p-3"}`}
+      >
         <RefreshCw className="h-4 w-4 animate-spin" />
         Checking authentication...
       </div>
@@ -166,8 +171,12 @@ export function VaultAuth({ onAuthSuccess, compact = false }: VaultAuthProps = {
       expiresAt && expiresAt.getTime() - Date.now() < 30 * 60 * 1000; // 30 min
 
     return (
-      <div className={`${compact ? "p-3" : "p-4"} bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800`}>
-        <div className={`flex items-center ${compact ? "gap-2" : "justify-between"}`}>
+      <div
+        className={`${compact ? "p-3" : "p-4"} bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800`}
+      >
+        <div
+          className={`flex items-center ${compact ? "gap-2" : "justify-between"}`}
+        >
           <div className="flex items-center gap-3">
             <div className="p-2 bg-green-100 dark:bg-green-800/50 rounded-full">
               <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -251,9 +260,13 @@ export function VaultAuth({ onAuthSuccess, compact = false }: VaultAuthProps = {
 
   // Sign in form
   return (
-    <div className={`${compact ? "p-3" : "p-4"} bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800`}>
+    <div
+      className={`${compact ? "p-3" : "p-4"} bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800`}
+    >
       <div className={`flex items-start gap-2 ${compact ? "mb-2" : "mb-3"}`}>
-        <AlertTriangle className={`${compact ? "h-4 w-4" : "h-5 w-5"} text-amber-600 dark:text-amber-400 mt-0.5 shrink-0`} />
+        <AlertTriangle
+          className={`${compact ? "h-4 w-4" : "h-5 w-5"} text-amber-600 dark:text-amber-400 mt-0.5 shrink-0`}
+        />
         <div>
           <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
             {authMessage.title}

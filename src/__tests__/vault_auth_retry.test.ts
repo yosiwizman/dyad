@@ -30,13 +30,19 @@ describe("vault auth error detection", () => {
   describe("isAuthError", () => {
     it("should detect 401 errors", () => {
       expect(isAuthError(new Error("HTTP 401: Unauthorized"))).toBe(true);
-      expect(isAuthError(new Error("Error: 401 - Token validation failed"))).toBe(true);
+      expect(
+        isAuthError(new Error("Error: 401 - Token validation failed")),
+      ).toBe(true);
     });
 
     it("should detect expired token errors", () => {
       expect(isAuthError(new Error("Token expired"))).toBe(true);
       expect(isAuthError(new Error("Session expired"))).toBe(true);
-      expect(isAuthError(new Error("Your session has expired. Please sign in again."))).toBe(true);
+      expect(
+        isAuthError(
+          new Error("Your session has expired. Please sign in again."),
+        ),
+      ).toBe(true);
     });
 
     it("should detect invalid token errors", () => {
@@ -51,7 +57,11 @@ describe("vault auth error detection", () => {
     });
 
     it("should detect not authenticated errors", () => {
-      expect(isAuthError(new Error("Not authenticated. Please sign in to use Vault."))).toBe(true);
+      expect(
+        isAuthError(
+          new Error("Not authenticated. Please sign in to use Vault."),
+        ),
+      ).toBe(true);
       expect(isAuthError(new Error("User is not authenticated"))).toBe(true);
     });
 
@@ -80,8 +90,12 @@ describe("vault auth error detection", () => {
     });
 
     it("should detect DNS errors", () => {
-      expect(isNetworkError(new Error("ENOTFOUND: DNS lookup failed"))).toBe(true);
-      expect(isNetworkError(new Error("getaddrinfo ENOTFOUND api.example.com"))).toBe(true);
+      expect(isNetworkError(new Error("ENOTFOUND: DNS lookup failed"))).toBe(
+        true,
+      );
+      expect(
+        isNetworkError(new Error("getaddrinfo ENOTFOUND api.example.com")),
+      ).toBe(true);
     });
 
     it("should detect timeout errors", () => {
@@ -132,12 +146,14 @@ describe("vault auth retry flow", () => {
        * 2. Attempt session refresh via vault:auth-refresh
        * 3. If refresh succeeds, retry backup once
        * 4. If refresh fails, show auth dialog
-       * 
+       *
        * This is tested via the actual component in integration tests.
        * Here we verify the error detection that triggers this flow.
        */
-      
-      const vaultError = new Error("Error invoking remote method 'vault:create-backup': Invalid or expired token");
+
+      const vaultError = new Error(
+        "Error invoking remote method 'vault:create-backup': Invalid or expired token",
+      );
       expect(isAuthError(vaultError)).toBe(true);
       expect(isNetworkError(vaultError)).toBe(false);
     });
@@ -145,9 +161,9 @@ describe("vault auth retry flow", () => {
     it("should handle the exact error message from the user report", () => {
       // The user reported: "Error invoking remote method 'vault:create-backup' … Invalid or expired token"
       const reportedError = new Error(
-        "Error invoking remote method 'vault:create-backup': Invalid or expired token"
+        "Error invoking remote method 'vault:create-backup': Invalid or expired token",
       );
-      
+
       expect(isAuthError(reportedError)).toBe(true);
     });
   });
@@ -155,9 +171,11 @@ describe("vault auth retry flow", () => {
   describe("user messaging", () => {
     it("should have appropriate messages for different error types", () => {
       // These are the expected messages shown to users
-      const authErrorMessage = "Your Vault session has expired. Please sign in again.";
-      const networkErrorMessage = "Cannot reach Vault. Please check your internet connection.";
-      
+      const authErrorMessage =
+        "Your Vault session has expired. Please sign in again.";
+      const networkErrorMessage =
+        "Cannot reach Vault. Please check your internet connection.";
+
       expect(authErrorMessage).toContain("expired");
       expect(authErrorMessage).toContain("sign in");
       expect(networkErrorMessage).toContain("connection");
