@@ -53,6 +53,17 @@ describe("broker schemas", () => {
       expect(result.appName).toBe("My App");
     });
 
+    it("should accept appPath for stub mode local URLs", () => {
+      const requestWithAppPath = {
+        appId: 123,
+        bundleHash: "abc123",
+        bundleSize: 1024,
+        appPath: "C:/Users/test/abba-ai-apps/my-app",
+      };
+      const result = PublishStartRequestSchema.parse(requestWithAppPath);
+      expect(result.appPath).toBe("C:/Users/test/abba-ai-apps/my-app");
+    });
+
     it("should reject missing required fields", () => {
       expect(() =>
         PublishStartRequestSchema.parse({

@@ -21,6 +21,7 @@ interface StubPublishState {
   publishId: string;
   appId: number;
   appName?: string;
+  appPath?: string;
   status: PublishStatus;
   progress: number;
   startTime: number;
@@ -65,6 +66,7 @@ export async function stubPublishStart(
     publishId,
     appId: request.appId,
     appName: request.appName,
+    appPath: request.appPath,
     status: "queued",
     progress: 0,
     startTime: Date.now(),
@@ -136,8 +138,16 @@ export async function stubPublishStatus(
   };
 
   if (currentStatus === "ready") {
-    // Generate deterministic fake URL based on publishId
-    response.url = `https://abba.app/p/${state.publishId}`;
+    // In stub mode, return a local file:// URL to the app directory
+    // This allows users to verify their app without a dead link
+    if (state.appPath) {
+      // Convert Windows path to file:// URL format
+      const normalizedPath = state.appPath.replace(/\\/g, "/");
+      response.url = `file:///${normalizedPath}`;
+    } else {
+      // Fallback to stub indicator if no appPath provided
+      response.url = `stub://local/${state.publishId}`;
+    }
   }
 
   return response;
@@ -178,20 +188,20 @@ export async function stubPublishCancel(
 /**
  * Get a human-readable message for the current status
  */
-function getStatusMessage(status: PublishStatus): string {
+function getStatusMessage(status: PublishStatus, isStub: boolean = true): string {
   switch (status) {
     case "queued":
       return "Preparing to publish...";
     case "packaging":
       return "Packaging your app...";
     case "uploading":
-      return "Uploading bundle...";
+      return isStub ? "Simulating upload..." : "Uploading bundle...";
     case "building":
-      return "Building for production...";
+      return isStub ? "Simulating build..." : "Building for production...";
     case "deploying":
-      return "Deploying to ABBA hosting...";
+      return isStub ? "Generating local preview..." : "Deploying to ABBA hosting...";
     case "ready":
-      return "Your app is live!";
+      return isStub ? "Ready (local preview)" : "Your app is live!";
     case "failed":
       return "Publish failed";
     case "cancelled":
