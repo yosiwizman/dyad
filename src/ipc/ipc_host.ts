@@ -38,6 +38,7 @@ import { registerVisualEditingHandlers } from "../pro/main/ipc/handlers/visual_e
 import { registerAgentToolHandlers } from "../pro/main/ipc/handlers/local_agent/agent_tool_handlers";
 import { registerVaultHandlers } from "./handlers/vault_handlers";
 import { registerProfileHandlers } from "./handlers/profile_handlers";
+import { registerPublishHandlers } from "./handlers/publish_handlers";
 
 export function registerIpcHandlers() {
   // Register all IPC handlers by category
@@ -81,4 +82,5 @@ export function registerIpcHandlers() {
   registerAgentToolHandlers();
   registerVaultHandlers();
   registerProfileHandlers();
+  registerPublishHandlers();
 }
