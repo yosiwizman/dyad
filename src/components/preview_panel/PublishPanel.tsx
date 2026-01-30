@@ -11,11 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GithubCollaboratorManager } from "@/components/GithubCollaboratorManager";
 import { Button } from "@/components/ui/button";
 import { showSuccess, showError } from "@/lib/toast";
-import {
-  isBellaModeWithSettings,
-  BELLA_MODE_PLACEHOLDER_MESSAGE,
-} from "@/shared/bella_mode";
-import { Info } from "lucide-react";
+import { isBellaModeWithSettings } from "@/shared/bella_mode";
+import { ManagedPublishPanel } from "./ManagedPublishPanel";
 
 type DeployStatus =
   | "idle"
@@ -153,9 +150,14 @@ export const PublishPanel = () => {
             <PortalMigrate appId={selectedAppId} />
           )}
 
-        {/* Bella Mode Placeholder */}
+        {/* Bella Mode - Managed Publish */}
         {isBellaModeWithSettings(settings ?? undefined) ? (
-          <BellaModePublishPlaceholder />
+          <ManagedPublishPanel
+            appId={selectedAppId}
+            appName={app.name}
+            lastPublishUrl={app.vercelDeploymentUrl}
+            onPublishComplete={() => refreshApp()}
+          />
         ) : (
           <>
             {/* GitHub Section */}
@@ -391,35 +393,3 @@ export const PublishPanel = () => {
     </div>
   );
 };
-
-/**
- * Placeholder shown in Bella Mode when publishing integrations are hidden
- */
-function BellaModePublishPlaceholder() {
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2">
-          <Info className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-          Publishing
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-start gap-3 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-          <div>
-            <h3 className="text-sm font-medium text-blue-900 dark:text-blue-100">
-              Managed by ABBA
-            </h3>
-            <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-              {BELLA_MODE_PLACEHOLDER_MESSAGE}
-            </p>
-            <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-              Your apps will be published through ABBA's managed hosting when
-              this feature is available.
-            </p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}

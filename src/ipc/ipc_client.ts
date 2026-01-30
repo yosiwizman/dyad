@@ -1836,4 +1836,48 @@ export class IpcClient {
     );
   }
   // --- End Profile Management ---
+
+  // --- Managed Publish ---
+  public async publishStart(params: {
+    appId: number;
+    profileId?: string;
+  }): Promise<{
+    publishId: string;
+    status: string;
+    isStub: boolean;
+  }> {
+    return this.ipcRenderer.invoke("publish:start", params);
+  }
+
+  public async publishStatus(publishId: string): Promise<{
+    status: string;
+    progress?: number;
+    message?: string;
+    url?: string;
+    error?: string;
+  }> {
+    return this.ipcRenderer.invoke("publish:status", { publishId });
+  }
+
+  public async publishCancel(publishId: string): Promise<{
+    success: boolean;
+    status: string;
+  }> {
+    return this.ipcRenderer.invoke("publish:cancel", { publishId });
+  }
+
+  public async publishDiagnostics(params: {
+    publishId?: string;
+    appId: number;
+  }): Promise<{
+    publishId?: string;
+    appId: number;
+    status: string;
+    error?: string;
+    timestamp: string;
+    brokerUrl?: string;
+  }> {
+    return this.ipcRenderer.invoke("publish:diagnostics", params);
+  }
+  // --- End Managed Publish ---
 }
