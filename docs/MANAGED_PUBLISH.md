@@ -101,12 +101,27 @@ Terminal states: `ready`, `failed`, `cancelled`
 
 ## Environment Variables
 
-| Variable          | Description                           |
-| ----------------- | ------------------------------------- |
-| `ABBA_BROKER_URL` | URL of the ABBA Broker API (optional) |
-| `BROKER_URL`      | Alias for `ABBA_BROKER_URL`           |
+| Variable            | Description                                      |
+| ------------------- | ------------------------------------------------ |
+| `ABBA_BROKER_URL`   | URL of the ABBA Broker API (optional)            |
+| `BROKER_URL`        | Alias for `ABBA_BROKER_URL`                      |
+| `ABBA_DEVICE_TOKEN` | Authentication token for the broker (required)   |
 
-If neither is set, the stub transport is used and returns local `file://` URLs.
+If `ABBA_BROKER_URL` is not set, the stub transport is used and returns local `file://` URLs.
+
+### Enabling Real Hosting
+
+To enable real hosting with the ABBA Broker:
+
+1. Set the environment variables:
+   ```bash
+   ABBA_BROKER_URL=https://abba-broker.vercel.app
+   ABBA_DEVICE_TOKEN=your-device-token
+   ```
+
+2. The UI will automatically switch from "Local Preview" mode to "Live Hosting" mode.
+
+3. Apps will be deployed to Vercel and receive real `https://` URLs.
 
 ## Usage
 
@@ -130,21 +145,30 @@ When publish fails:
 2. "Try Again" button is available
 3. "Copy Diagnostics" captures debug info (with secrets redacted)
 
-## Future: ABBA Broker Service
+## ABBA Broker Service
 
-The real broker service (not included in this release) will:
+The ABBA Broker is now available at `https://abba-broker.vercel.app`. It provides:
 
-1. Receive the bundle from the desktop app
-2. Build the app for production
-3. Deploy to ABBA's hosting infrastructure
-4. Return a live URL
+1. Secure bundle upload (authenticated with device token)
+2. Automated deployment to Vercel
+3. Real `https://` URLs for deployed apps
+4. Status polling and cancellation support
 
-This is planned for a future milestone. The current implementation provides:
+### Broker API Endpoints
 
-- Full UI/UX for publishing
-- Bundle creation and validation
-- API contract (schemas/types)
-- Infrastructure for status polling
+| Endpoint                      | Method | Description                    |
+| ----------------------------- | ------ | ------------------------------ |
+| `/api/v1/publish/start`       | POST   | Start a publish operation      |
+| `/api/v1/publish/upload`      | PUT    | Upload the bundle              |
+| `/api/v1/publish/status`      | GET    | Get current publish status     |
+| `/api/v1/publish/cancel`      | POST   | Cancel in-progress publish     |
+| `/api/health`                 | GET    | Health check                   |
+
+### Security
+
+- All broker requests require the `x-abba-device-token` header
+- Tokens are validated server-side with constant-time comparison
+- No owner secrets (Vercel tokens, etc.) are exposed to the desktop app
 
 ## Testing
 

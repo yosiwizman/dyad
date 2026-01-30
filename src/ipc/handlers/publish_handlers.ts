@@ -12,8 +12,10 @@ import path from "node:path";
 import log from "electron-log";
 import { getAbbaAppPath } from "../../paths/paths";
 import { createBundle, cleanupBundle } from "../utils/bundle_utils";
+import fs from "node:fs";
 import {
   publishStart as brokerPublishStart,
+  publishUpload as brokerPublishUpload,
   publishStatus as brokerPublishStatus,
   publishCancel as brokerPublishCancel,
   isUsingStubTransport,
@@ -133,6 +135,14 @@ async function handlePublishStart(
   });
 
   logger.info(`Publish started: ${response.publishId}`);
+
+  // If we have an upload URL (real broker), upload the bundle
+  if (response.uploadUrl && !isUsingStubTransport()) {
+    logger.info(`Uploading bundle to ${response.uploadUrl}`);
+    const bundleBuffer = await fs.promises.readFile(bundlePath);
+    await brokerPublishUpload(response.uploadUrl, bundleBuffer);
+    logger.info(`Bundle uploaded successfully`);
+  }
 
   return {
     publishId: response.publishId,

@@ -33,10 +33,28 @@ function getBrokerUrl(): string | null {
 }
 
 /**
+ * Get the device token for authentication
+ */
+function getDeviceToken(): string | null {
+  return process.env.ABBA_DEVICE_TOKEN || null;
+}
+
+/**
  * Check if we should use the stub transport
  */
 export function isUsingStubTransport(): boolean {
   return getBrokerUrl() === null;
+}
+
+/**
+ * Get auth headers for broker requests
+ */
+function getAuthHeaders(): Record<string, string> {
+  const token = getDeviceToken();
+  if (token) {
+    return { "x-abba-device-token": token };
+  }
+  return {};
 }
 
 // --- HTTP Transport ---
@@ -50,6 +68,7 @@ async function httpFetch<T>(
     ...options,
     headers: {
       "Content-Type": "application/json",
+      ...getAuthHeaders(),
       ...options.headers,
     },
   });
@@ -85,13 +104,53 @@ export async function publishStart(
 
   // Use real HTTP transport
   return httpFetch(
-    `${brokerUrl}/v1/publish/start`,
+    `${brokerUrl}/api/v1/publish/start`,
     {
       method: "POST",
       body: JSON.stringify(validated),
     },
     PublishStartResponseSchema,
   );
+}
+
+/**
+ * Upload a bundle to the broker
+ *
+ * @param uploadUrl - The upload URL from publishStart response
+ * @param bundlePath - Path to the bundle file
+ * @returns Success indicator
+ */
+export async function publishUpload(
+  uploadUrl: string,
+  bundleBuffer: Buffer,
+): Promise<{ success: boolean; message?: string }> {
+  const brokerUrl = getBrokerUrl();
+  if (!brokerUrl) {
+    // Stub mode - upload is simulated, just return success
+    return { success: true, message: "Stub upload simulated" };
+  }
+
+  // Resolve the upload URL (might be relative)
+  const fullUrl = uploadUrl.startsWith("http")
+    ? uploadUrl
+    : `${brokerUrl}${uploadUrl}`;
+
+  const response = await fetch(fullUrl, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/octet-stream",
+      ...getAuthHeaders(),
+    },
+    body: bundleBuffer,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Upload failed: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  return { success: true, message: data.message };
 }
 
 /**
@@ -111,7 +170,7 @@ export async function publishStatus(
 
   // Use real HTTP transport
   return httpFetch(
-    `${brokerUrl}/v1/publish/status?publishId=${encodeURIComponent(publishId)}`,
+    `${brokerUrl}/api/v1/publish/status?publishId=${encodeURIComponent(publishId)}`,
     { method: "GET" },
     PublishStatusResponseSchema,
   );
@@ -134,7 +193,7 @@ export async function publishCancel(
 
   // Use real HTTP transport
   return httpFetch(
-    `${brokerUrl}/v1/publish/cancel`,
+    `${brokerUrl}/api/v1/publish/cancel`,
     {
       method: "POST",
       body: JSON.stringify({ publishId }),

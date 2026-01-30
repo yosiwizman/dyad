@@ -10,6 +10,7 @@ export * from "./types";
 // Client
 export {
   publishStart,
+  publishUpload,
   publishStatus,
   publishCancel,
   isUsingStubTransport,
