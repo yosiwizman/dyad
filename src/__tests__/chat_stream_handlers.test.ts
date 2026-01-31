@@ -13,7 +13,6 @@ import {
   hasUnclosedDyadWrite,
 } from "../ipc/handlers/chat_stream_handlers";
 import fs from "node:fs";
-import path from "node:path";
 import { db } from "../db";
 import { cleanFullResponse } from "../ipc/utils/cleanFullResponse";
 import { gitAdd, gitRemove, gitCommit } from "../ipc/utils/git_utils";
@@ -69,7 +68,12 @@ vi.mock("../paths/paths", () => ({
 
 const MOCK_USER_DATA_PATH = "/mock/user/data/path";
 const MOCK_APP_PATH = "mock-app-path";
-const MOCK_APP_BASE_PATH = path.join(MOCK_USER_DATA_PATH, MOCK_APP_PATH);
+// Use forward slashes consistently for cross-platform tests
+const MOCK_APP_BASE_PATH = `${MOCK_USER_DATA_PATH}/${MOCK_APP_PATH}`;
+
+// Helper to create expected paths with forward slashes
+const mockPath = (...segments: string[]) =>
+  [MOCK_APP_BASE_PATH, ...segments].join("/");
 
 // Mock db
 vi.mock("../db", () => ({
@@ -705,12 +709,11 @@ describe("processFullResponse", () => {
       messageId: 1,
     });
 
-    expect(fs.mkdirSync).toHaveBeenCalledWith(
-      path.join(MOCK_APP_BASE_PATH, "src"),
-      { recursive: true },
-    );
+    expect(fs.mkdirSync).toHaveBeenCalledWith(mockPath("src"), {
+      recursive: true,
+    });
     expect(fs.writeFileSync).toHaveBeenCalledWith(
-      path.join(MOCK_APP_BASE_PATH, "src", "file1.js"),
+      mockPath("src", "file1.js"),
       "console.log('Hello');",
     );
     expect(gitAdd).toHaveBeenCalledWith(
@@ -762,33 +765,30 @@ describe("processFullResponse", () => {
     });
 
     // Check that directories were created for each file path
-    expect(fs.mkdirSync).toHaveBeenCalledWith(
-      path.join(MOCK_APP_BASE_PATH, "src"),
-      { recursive: true },
-    );
-    expect(fs.mkdirSync).toHaveBeenCalledWith(
-      path.join(MOCK_APP_BASE_PATH, "src", "utils"),
-      { recursive: true },
-    );
-    expect(fs.mkdirSync).toHaveBeenCalledWith(
-      path.join(MOCK_APP_BASE_PATH, "src", "components"),
-      { recursive: true },
-    );
+    expect(fs.mkdirSync).toHaveBeenCalledWith(mockPath("src"), {
+      recursive: true,
+    });
+    expect(fs.mkdirSync).toHaveBeenCalledWith(mockPath("src", "utils"), {
+      recursive: true,
+    });
+    expect(fs.mkdirSync).toHaveBeenCalledWith(mockPath("src", "components"), {
+      recursive: true,
+    });
 
     // Using toHaveBeenNthCalledWith to check each specific call
     expect(fs.writeFileSync).toHaveBeenNthCalledWith(
       1,
-      path.join(MOCK_APP_BASE_PATH, "src", "file1.js"),
+      mockPath("src", "file1.js"),
       "console.log('First file');",
     );
     expect(fs.writeFileSync).toHaveBeenNthCalledWith(
       2,
-      path.join(MOCK_APP_BASE_PATH, "src", "utils", "file2.js"),
+      mockPath("src", "utils", "file2.js"),
       "export const add = (a, b) => a + b;",
     );
     expect(fs.writeFileSync).toHaveBeenNthCalledWith(
       3,
-      path.join(MOCK_APP_BASE_PATH, "src", "components", "Button.tsx"),
+      mockPath("src", "components", "Button.tsx"),
       "import React from 'react';\n    export const Button = ({ children }) => <button>{children}</button>;",
     );
 
@@ -827,13 +827,12 @@ describe("processFullResponse", () => {
       messageId: 1,
     });
 
-    expect(fs.mkdirSync).toHaveBeenCalledWith(
-      path.join(MOCK_APP_BASE_PATH, "src", "components"),
-      { recursive: true },
-    );
+    expect(fs.mkdirSync).toHaveBeenCalledWith(mockPath("src", "components"), {
+      recursive: true,
+    });
     expect(fs.renameSync).toHaveBeenCalledWith(
-      path.join(MOCK_APP_BASE_PATH, "src", "components", "OldComponent.jsx"),
-      path.join(MOCK_APP_BASE_PATH, "src", "components", "NewComponent.jsx"),
+      mockPath("src", "components", "OldComponent.jsx"),
+      mockPath("src", "components", "NewComponent.jsx"),
     );
     expect(gitAdd).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -883,7 +882,7 @@ describe("processFullResponse", () => {
     });
 
     expect(fs.unlinkSync).toHaveBeenCalledWith(
-      path.join(MOCK_APP_BASE_PATH, "src", "components", "Unused.jsx"),
+      mockPath("src", "components", "Unused.jsx"),
     );
     expect(gitRemove).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -936,24 +935,19 @@ describe("processFullResponse", () => {
 
     // Check write operation happened
     expect(fs.writeFileSync).toHaveBeenCalledWith(
-      path.join(MOCK_APP_BASE_PATH, "src", "components", "NewComponent.jsx"),
+      mockPath("src", "components", "NewComponent.jsx"),
       "import React from 'react'; export default () => <div>New</div>;",
     );
 
     // Check rename operation happened
     expect(fs.renameSync).toHaveBeenCalledWith(
-      path.join(MOCK_APP_BASE_PATH, "src", "components", "OldComponent.jsx"),
-      path.join(
-        MOCK_APP_BASE_PATH,
-        "src",
-        "components",
-        "RenamedComponent.jsx",
-      ),
+      mockPath("src", "components", "OldComponent.jsx"),
+      mockPath("src", "components", "RenamedComponent.jsx"),
     );
 
     // Check delete operation happened
     expect(fs.unlinkSync).toHaveBeenCalledWith(
-      path.join(MOCK_APP_BASE_PATH, "src", "components", "Unused.jsx"),
+      mockPath("src", "components", "Unused.jsx"),
     );
 
     // Check git operations

@@ -1,14 +1,110 @@
 import { getGitAuthor } from "./git_author";
 import git from "isomorphic-git";
 import http from "isomorphic-git/http/node";
-import { exec } from "dugite";
+import {
+  exec,
+  type IGitStringExecutionOptions,
+  type IGitStringResult,
+} from "dugite";
 import fs from "node:fs";
 import { promises as fsPromises } from "node:fs";
 import pathModule from "node:path";
+import { platform } from "node:os";
 import { readSettings } from "../../main/settings";
 import log from "electron-log";
 import { normalizePath } from "../../../shared/normalizePath";
 const logger = log.scope("git_utils");
+
+/**
+ * Returns a sanitized environment for git commands on Windows.
+ * Filters out WSL-related PATH entries that can cause WSL interop issues.
+ * On non-Windows platforms, returns undefined (use default environment).
+ *
+ * Issue: https://github.com/dyad-sh/dyad/issues/2194
+ * When WSL is installed on Windows, the PATH can contain entries that cause
+ * git commands to be intercepted by WSL's relay system, resulting in errors
+ * like "execvpe(/bin/bash) failed: No such file or directory".
+ */
+function getWindowsSanitizedEnv():
+  | Record<string, string | undefined>
+  | undefined {
+  if (platform() !== "win32") {
+    return undefined;
+  }
+
+  // On Windows, the PATH environment variable can be stored with different casings
+  // (e.g., "PATH", "Path", "path"). We need to find the actual key used to avoid
+  // creating duplicate entries with different casings.
+  const pathKey =
+    Object.keys(process.env).find((key) => key.toUpperCase() === "PATH") ??
+    "PATH";
+  const currentPath = process.env[pathKey] ?? "";
+  const pathSeparator = ";";
+
+  // Filter out PATH entries that could trigger WSL interop
+  const sanitizedPathEntries = currentPath
+    .split(pathSeparator)
+    .filter((entry) => {
+      const lowerEntry = entry.toLowerCase();
+      // Filter out WSL-related paths:
+      // - \\wsl$\ or \\wsl.localhost\ network paths
+      // - Paths containing 'windowsapps' that might have WSL shims
+      // - Linux-style paths that somehow got into Windows PATH
+      if (
+        lowerEntry.includes("\\wsl$\\") ||
+        lowerEntry.includes("\\wsl.localhost\\") ||
+        lowerEntry.includes("windowsapps") ||
+        lowerEntry.startsWith("/mnt/") ||
+        lowerEntry.startsWith("/usr/") ||
+        lowerEntry.startsWith("/bin/") ||
+        lowerEntry.startsWith("/home/")
+      ) {
+        logger.debug(`Filtering WSL-related PATH entry: ${entry}`);
+        return false;
+      }
+      return true;
+    });
+
+  return {
+    ...process.env,
+    [pathKey]: sanitizedPathEntries.join(pathSeparator),
+  };
+}
+
+/**
+ * Wrapper around dugite's exec that uses a sanitized environment on Windows
+ * to prevent WSL interop issues.
+ */
+async function execGit(
+  args: string[],
+  path: string,
+  options?: IGitStringExecutionOptions,
+): Promise<IGitStringResult> {
+  const sanitizedEnv = getWindowsSanitizedEnv();
+
+  // Only create execOptions if we need to modify the environment
+  // On Windows: merge sanitized env with any caller-provided env, ensuring sanitized PATH takes precedence
+  // On non-Windows: pass through options unchanged (dugite will use process.env by default)
+  if (sanitizedEnv) {
+    // Find the PATH key used in the sanitized env
+    const pathKey =
+      Object.keys(sanitizedEnv).find((key) => key.toUpperCase() === "PATH") ??
+      "PATH";
+    const execOptions: IGitStringExecutionOptions = {
+      ...options,
+      env: {
+        ...sanitizedEnv,
+        ...options?.env,
+        // Ensure sanitized PATH always takes precedence to prevent WSL contamination
+        [pathKey]: sanitizedEnv[pathKey],
+      },
+    };
+    return exec(args, path, execOptions);
+  }
+
+  // On non-Windows, pass options through unchanged
+  return exec(args, path, options);
+}
 import type {
   GitBaseParams,
   GitFileParams,
@@ -38,7 +134,7 @@ async function execOrThrow(
   path: string,
   errorMessage?: string,
 ): Promise<void> {
-  const result = await exec(args, path);
+  const result = await execGit(args, path);
   if (result.exitCode !== 0) {
     const errorDetails = result.stderr.trim() || result.stdout.trim();
     const error = errorMessage
@@ -81,7 +177,7 @@ export async function gitAddSafeDirectory(directory: string): Promise<void> {
 
   try {
     // First check if the directory is already in the safe.directory list
-    const checkResult = await exec(
+    const checkResult = await execGit(
       ["config", "--global", "--get-all", "safe.directory"],
       ".",
     );
@@ -98,7 +194,7 @@ export async function gitAddSafeDirectory(directory: string): Promise<void> {
       return;
     }
 
-    const result = await exec(
+    const result = await execGit(
       ["config", "--global", "--add", "safe.directory", directory],
       ".",
     );
@@ -122,7 +218,7 @@ export async function getCurrentCommitHash({
 }: GitInitParams): Promise<string> {
   const settings = readSettings();
   if (settings.enableNativeGit) {
-    const result = await exec(["rev-parse", ref], path);
+    const result = await execGit(["rev-parse", ref], path);
     if (result.exitCode !== 0) {
       throw new Error(
         `Failed to resolve ref '${ref}': ${result.stderr.trim() || result.stdout.trim()}`,
@@ -145,7 +241,7 @@ export async function isGitStatusClean({
 }): Promise<boolean> {
   const settings = readSettings();
   if (settings.enableNativeGit) {
-    const result = await exec(["status", "--porcelain"], path);
+    const result = await execGit(["status", "--porcelain"], path);
 
     if (result.exitCode !== 0) {
       throw new Error(`Failed to get status: ${result.stderr}`);
@@ -177,7 +273,7 @@ export async function gitCommit({
     const args = await withGitAuthor(commitArgs);
     await execOrThrow(args, path, "Failed to create commit");
     // Get the new commit hash
-    const result = await exec(["rev-parse", "HEAD"], path);
+    const result = await execGit(["rev-parse", "HEAD"], path);
     if (result.exitCode !== 0) {
       throw new Error(
         `Failed to get commit hash: ${result.stderr.trim() || result.stdout.trim()}`,
@@ -219,7 +315,7 @@ export async function gitStageToRevert({
   const settings = readSettings();
   if (settings.enableNativeGit) {
     // Get the current HEAD commit hash
-    const currentHeadResult = await exec(["rev-parse", "HEAD"], path);
+    const currentHeadResult = await execGit(["rev-parse", "HEAD"], path);
     if (currentHeadResult.exitCode !== 0) {
       throw new Error(
         `Failed to get current commit: ${currentHeadResult.stderr.trim() || currentHeadResult.stdout.trim()}`,
@@ -234,7 +330,7 @@ export async function gitStageToRevert({
     }
 
     // Safety: refuse to run if the work-tree isn't clean.
-    const statusResult = await exec(["status", "--porcelain"], path);
+    const statusResult = await execGit(["status", "--porcelain"], path);
     if (statusResult.exitCode !== 0) {
       throw new Error(
         `Failed to get status: ${statusResult.stderr.trim() || statusResult.stdout.trim()}`,
@@ -320,18 +416,19 @@ export async function gitAddAll({ path }: GitBaseParams): Promise<void> {
 }
 
 export async function gitAdd({ path, filepath }: GitFileParams): Promise<void> {
+  const normalizedFilepath = normalizePath(filepath);
   const settings = readSettings();
   if (settings.enableNativeGit) {
     await execOrThrow(
-      ["add", "--", filepath],
+      ["add", "--", normalizedFilepath],
       path,
-      `Failed to stage file '${filepath}'`,
+      `Failed to stage file '${normalizedFilepath}'`,
     );
   } else {
     await git.add({
       fs,
       dir: path,
-      filepath,
+      filepath: normalizedFilepath,
     });
   }
 }
@@ -397,7 +494,7 @@ export async function getGitUncommittedFiles({
 }: GitBaseParams): Promise<string[]> {
   const settings = readSettings();
   if (settings.enableNativeGit) {
-    const result = await exec(["status", "--porcelain"], path);
+    const result = await execGit(["status", "--porcelain"], path);
     if (result.exitCode !== 0) {
       throw new Error(
         `Failed to get uncommitted files: ${result.stderr.trim() || result.stdout.trim()}`,
@@ -424,7 +521,7 @@ export async function getFileAtCommit({
   const settings = readSettings();
   if (settings.enableNativeGit) {
     try {
-      const result = await exec(["show", `${commitHash}:${filePath}`], path);
+      const result = await execGit(["show", `${commitHash}:${filePath}`], path);
       if (result.exitCode !== 0) {
         // File doesn't exist at this commit or other error
         return null;
@@ -462,7 +559,7 @@ export async function gitListBranches({
   const settings = readSettings();
 
   if (settings.enableNativeGit) {
-    const result = await exec(["branch", "--list"], path);
+    const result = await execGit(["branch", "--list"], path);
 
     if (result.exitCode !== 0) {
       throw new Error(result.stderr.toString());
@@ -489,7 +586,7 @@ export async function gitListRemoteBranches({
   const settings = readSettings();
 
   if (settings.enableNativeGit) {
-    const result = await exec(["branch", "-r", "--list"], path);
+    const result = await execGit(["branch", "-r", "--list"], path);
 
     if (result.exitCode !== 0) {
       throw new Error(result.stderr.toString());
@@ -530,7 +627,7 @@ export async function gitRenameBranch({
 
   if (settings.enableNativeGit) {
     // git branch -m oldBranch newBranch
-    const result = await exec(["branch", "-m", oldBranch, newBranch], path);
+    const result = await execGit(["branch", "-m", oldBranch, newBranch], path);
     if (result.exitCode !== 0) {
       throw new Error(result.stderr.toString());
     }
@@ -597,8 +694,8 @@ export async function gitClone({
     if (singleBranch) {
       args.push("--single-branch");
     }
-    args.push(finalUrl, path);
-    const result = await exec(args, ".");
+    args.push("--", finalUrl, path);
+    const result = await execGit(args, ".");
 
     if (result.exitCode !== 0) {
       throw new Error(result.stderr.toString());
@@ -630,15 +727,24 @@ export async function gitSetRemoteUrl({
 }: GitSetRemoteUrlParams): Promise<void> {
   const settings = readSettings();
 
+  // Validate remoteUrl to prevent argument injection attacks
+  // URLs starting with "-" could be interpreted as command-line options
+  if (remoteUrl.startsWith("-")) {
+    throw new Error("Invalid remote URL");
+  }
+
   if (settings.enableNativeGit) {
     // Dugite version
     try {
       // Try to add the remote
-      const result = await exec(["remote", "add", "origin", remoteUrl], path);
+      const result = await execGit(
+        ["remote", "add", "origin", remoteUrl],
+        path,
+      );
 
       // If remote already exists, update it instead
       if (result.exitCode !== 0 && result.stderr.includes("already exists")) {
-        const updateResult = await exec(
+        const updateResult = await execGit(
           ["remote", "set-url", "origin", remoteUrl],
           path,
         );
@@ -691,7 +797,7 @@ export async function gitPush({
       } else if (force) {
         args.push("--force");
       }
-      const result = await exec(args, path);
+      const result = await execGit(args, path);
       if (result.exitCode !== 0) {
         const errorMsg = result.stderr.toString() || result.stdout.toString();
         throw new Error(`Git push failed: ${errorMsg}`);
@@ -803,7 +909,7 @@ export async function gitCurrentBranch({
   const settings = readSettings();
   if (settings.enableNativeGit) {
     // Dugite version
-    const result = await exec(["branch", "--show-current"], path);
+    const result = await execGit(["branch", "--show-current"], path);
     if (result.exitCode !== 0) {
       throw new Error(
         `Failed to get current branch: ${result.stderr.trim() || result.stdout.trim()}`,
@@ -849,7 +955,7 @@ export async function gitIsIgnored({
   if (settings.enableNativeGit) {
     // Dugite version
     // git check-ignore file
-    const result = await exec(["check-ignore", filepath], path);
+    const result = await execGit(["check-ignore", "--", filepath], path);
 
     // If exitCode == 0 → file is ignored
     if (result.exitCode === 0) return true;
@@ -884,7 +990,7 @@ export async function gitLogNative(
     "HEAD",
   ];
 
-  const logResult = await exec(logArgs, path);
+  const logResult = await execGit(logArgs, path);
 
   if (logResult.exitCode !== 0) {
     throw new Error(logResult.stderr.toString());
@@ -1141,7 +1247,7 @@ export async function gitGetMergeConflicts({
   const settings = readSettings();
   if (settings.enableNativeGit) {
     // git diff --name-only --diff-filter=U
-    const result = (await exec(
+    const result = (await execGit(
       ["diff", "--name-only", "--diff-filter=U"],
       path,
     )) as unknown as {

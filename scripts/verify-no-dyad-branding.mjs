@@ -128,6 +128,7 @@ const EXCLUDE_PATTERNS = [
   "**/fixtures/**",
   "docs/BRAND_AUDIT.md", // This file documents Dyad references
   "docs/UPSTREAM_SYNC_REPORT.md", // This file documents upstream sync analysis
+  "docs/UPSTREAM_INTAKE_REPORT*.md", // Upstream intake reports document dyad-sh commits
 ];
 
 function isAllowlisted(line) {
