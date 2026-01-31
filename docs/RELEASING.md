@@ -103,6 +103,32 @@ If a release failed partway through:
 2. **Delete the tag** if needed: `git push --delete origin v0.2.X`
 3. **Re-push the tag** to trigger a fresh build
 
+## Upstream Synchronization
+
+⚠️ **IMPORTANT: Never use GitHub's "Sync fork" button!**
+
+ABBA AI is a fork of dyad-sh/dyad with custom features (Bella Mode, Vault, Managed Publish, branding). Blindly syncing would revert these customizations.
+
+### Upstream Intake Process
+
+1. **Generate an Upstream Intake Report** comparing `upstream/main` vs our `main`
+2. **Categorize commits** into SAFE, RISKY, and SKIP buckets
+3. **Cherry-pick only SAFE commits** (risk 1-2) that don't touch ABBA features
+4. **Resolve conflicts** by always preferring ABBA behavior
+5. **Run full CI** before merging
+
+See `docs/UPSTREAM_INTAKE_REPORT_*.md` for historical intake reports.
+
+### What to Protect
+
+When resolving conflicts, always preserve:
+- Bella Mode settings and behavior
+- Vault configuration and paths
+- Managed Publish (broker integration)
+- ABBA branding (names, icons, colors)
+- Profile lock screen
+- GitHub OAuth configuration (`ABBA_GITHUB_OAUTH_CLIENT_ID`)
+
 ## Release Schedule
 
 - **Stable releases**: Tagged as `v0.2.X`
