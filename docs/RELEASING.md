@@ -122,6 +122,7 @@ See `docs/UPSTREAM_INTAKE_REPORT_*.md` for historical intake reports.
 ### What to Protect
 
 When resolving conflicts, always preserve:
+
 - Bella Mode settings and behavior
 - Vault configuration and paths
 - Managed Publish (broker integration)

@@ -710,10 +710,9 @@ describe("processFullResponse", () => {
       messageId: 1,
     });
 
-    expect(fs.mkdirSync).toHaveBeenCalledWith(
-      mockPath("src"),
-      { recursive: true },
-    );
+    expect(fs.mkdirSync).toHaveBeenCalledWith(mockPath("src"), {
+      recursive: true,
+    });
     expect(fs.writeFileSync).toHaveBeenCalledWith(
       mockPath("src", "file1.js"),
       "console.log('Hello');",
@@ -767,18 +766,15 @@ describe("processFullResponse", () => {
     });
 
     // Check that directories were created for each file path
-    expect(fs.mkdirSync).toHaveBeenCalledWith(
-      mockPath("src"),
-      { recursive: true },
-    );
-    expect(fs.mkdirSync).toHaveBeenCalledWith(
-      mockPath("src", "utils"),
-      { recursive: true },
-    );
-    expect(fs.mkdirSync).toHaveBeenCalledWith(
-      mockPath("src", "components"),
-      { recursive: true },
-    );
+    expect(fs.mkdirSync).toHaveBeenCalledWith(mockPath("src"), {
+      recursive: true,
+    });
+    expect(fs.mkdirSync).toHaveBeenCalledWith(mockPath("src", "utils"), {
+      recursive: true,
+    });
+    expect(fs.mkdirSync).toHaveBeenCalledWith(mockPath("src", "components"), {
+      recursive: true,
+    });
 
     // Using toHaveBeenNthCalledWith to check each specific call
     expect(fs.writeFileSync).toHaveBeenNthCalledWith(
@@ -832,10 +828,9 @@ describe("processFullResponse", () => {
       messageId: 1,
     });
 
-    expect(fs.mkdirSync).toHaveBeenCalledWith(
-      mockPath("src", "components"),
-      { recursive: true },
-    );
+    expect(fs.mkdirSync).toHaveBeenCalledWith(mockPath("src", "components"), {
+      recursive: true,
+    });
     expect(fs.renameSync).toHaveBeenCalledWith(
       mockPath("src", "components", "OldComponent.jsx"),
       mockPath("src", "components", "NewComponent.jsx"),
