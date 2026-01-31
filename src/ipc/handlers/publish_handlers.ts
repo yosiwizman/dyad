@@ -20,7 +20,6 @@ import {
   publishCancel as brokerPublishCancel,
   isUsingStubTransport,
   getBrokerDiagnostics,
-  isBrokerEnabled,
   type PublishDiagnostics,
 } from "../../lib/broker";
 import { createLoggedHandler } from "./safe_handle";
