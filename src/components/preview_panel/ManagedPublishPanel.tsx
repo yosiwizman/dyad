@@ -31,6 +31,7 @@ import {
   Globe,
   Wifi,
   WifiOff,
+  Shield,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -92,7 +93,9 @@ function ProgressStep({ icon, label, status }: ProgressStepProps) {
 interface BrokerStatusResult {
   isEnabled: boolean;
   isStub: boolean;
-  hostingStatus: "connected" | "not-configured";
+  hasDeviceToken: boolean;
+  needsAdminSetup: boolean;
+  hostingStatus: "ready" | "needs-token" | "not-configured";
   brokerHost: string | null;
 }
 
@@ -336,11 +339,11 @@ export function ManagedPublishPanel({
         </CardDescription>
         {/* Hosting status indicator */}
         <div className="flex items-center gap-2 mt-2 text-xs">
-          {brokerStatus?.isEnabled ? (
+          {brokerStatus?.hostingStatus === "ready" ? (
             <>
               <Wifi className="w-3 h-3 text-green-500" />
               <span className="text-green-600 dark:text-green-400">
-                Broker connected
+                Broker ready
               </span>
               {brokerStatus.brokerHost && (
                 <span className="text-gray-400 dark:text-gray-500">
@@ -348,10 +351,17 @@ export function ManagedPublishPanel({
                 </span>
               )}
             </>
+          ) : brokerStatus?.hostingStatus === "needs-token" ? (
+            <>
+              <Shield className="w-3 h-3 text-amber-500" />
+              <span className="text-amber-600 dark:text-amber-400">
+                Admin setup required (Ctrl+Shift+K)
+              </span>
+            </>
           ) : (
             <>
-              <WifiOff className="w-3 h-3 text-amber-500" />
-              <span className="text-amber-600 dark:text-amber-400">
+              <WifiOff className="w-3 h-3 text-gray-400" />
+              <span className="text-gray-500 dark:text-gray-400">
                 Broker not configured
               </span>
             </>
@@ -359,16 +369,45 @@ export function ManagedPublishPanel({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Idle state - show publish button */}
+        {/* Idle state - show publish button or admin setup required */}
         {phase === "idle" && !publishedUrl && (
-          <Button
-            onClick={handlePublish}
-            className="w-full bg-purple-600 hover:bg-purple-700"
-            size="lg"
-          >
-            <Rocket className="w-4 h-4 mr-2" />
-            {isStub ? "Create Local Preview" : "Publish Live"}
-          </Button>
+          <>
+            {brokerStatus?.needsAdminSetup ? (
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Shield className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                  <span className="font-medium text-amber-800 dark:text-amber-200">
+                    Admin Setup Required
+                  </span>
+                </div>
+                <p className="text-sm text-amber-700 dark:text-amber-300 mb-3">
+                  Device token not configured. Ask the device owner to press{" "}
+                  <kbd className="px-1.5 py-0.5 text-xs font-mono bg-amber-100 dark:bg-amber-800 rounded">
+                    Ctrl+Shift+K
+                  </kbd>{" "}
+                  to open Admin Config.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={handlePublish}
+                  className="w-full"
+                  size="sm"
+                >
+                  <Rocket className="w-4 h-4 mr-2" />
+                  Try Anyway (Local Preview)
+                </Button>
+              </div>
+            ) : (
+              <Button
+                onClick={handlePublish}
+                className="w-full bg-purple-600 hover:bg-purple-700"
+                size="lg"
+              >
+                <Rocket className="w-4 h-4 mr-2" />
+                {isStub ? "Create Local Preview" : "Publish Live"}
+              </Button>
+            )}
+          </>
         )}
 
         {/* Idle with previous URL */}

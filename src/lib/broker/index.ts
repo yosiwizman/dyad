@@ -11,6 +11,8 @@ export * from "./types";
 export {
   getBrokerConfig,
   isBrokerEnabled,
+  isDeviceTokenConfigured,
+  isBrokerAuthConfigured,
   getBrokerDiagnostics,
   DEFAULT_BROKER_URL,
   type BrokerConfig,

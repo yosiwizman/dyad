@@ -82,6 +82,21 @@ export function isBrokerEnabled(): boolean {
 }
 
 /**
+ * Check if device token is configured (required for authenticated broker operations)
+ */
+export function isDeviceTokenConfigured(): boolean {
+  return !!getBrokerConfig().deviceToken;
+}
+
+/**
+ * Check if broker auth is fully configured (URL + token)
+ */
+export function isBrokerAuthConfigured(): boolean {
+  const config = getBrokerConfig();
+  return config.isEnabled && !!config.deviceToken;
+}
+
+/**
  * Get diagnostics-safe broker info (no secrets)
  */
 export function getBrokerDiagnostics(): {

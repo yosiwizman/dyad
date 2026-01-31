@@ -4,10 +4,11 @@ import { ThemeProvider } from "../contexts/ThemeContext";
 import { DeepLinkProvider } from "../contexts/DeepLinkContext";
 import { Toaster } from "sonner";
 import { TitleBar } from "./TitleBar";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useRunApp } from "@/hooks/useRunApp";
 import { useProfile } from "@/contexts/ProfileContext";
 import { ProfileLockScreen } from "@/components/profile/ProfileLockScreen";
+import { AdminConfigPanel } from "@/components/admin/AdminConfigPanel";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
   appConsoleEntriesAtom,
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   const selectedAppId = useAtomValue(selectedAppIdAtom);
   const setConsoleEntries = useSetAtom(appConsoleEntriesAtom);
   const { shouldShowLockScreen } = useProfile();
+  const [isAdminConfigOpen, setIsAdminConfigOpen] = useState(false);
 
   useEffect(() => {
     const zoomLevel = settings?.zoomLevel ?? DEFAULT_ZOOM_LEVEL;
@@ -57,7 +59,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
     return () => {};
   }, [settings?.zoomLevel]);
-  // Global keyboard listener for refresh events
+  // Global keyboard listener for refresh events and admin config shortcut
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Check for Ctrl+R (Windows/Linux) or Cmd+R (macOS)
@@ -66,6 +68,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         if (previewMode === "preview") {
           refreshAppIframe(); // Use our custom refresh function instead
         }
+      }
+
+      // Check for Ctrl+Shift+K (Windows/Linux) or Cmd+Shift+K (macOS) for Admin Config
+      if (
+        event.key === "k" &&
+        (event.ctrlKey || event.metaKey) &&
+        event.shiftKey
+      ) {
+        event.preventDefault();
+        setIsAdminConfigOpen(true);
       }
     };
 
@@ -107,6 +119,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               {children}
             </div>
             <Toaster richColors />
+            {/* Admin Config Panel - accessible via Ctrl+Shift+K */}
+            <AdminConfigPanel
+              isOpen={isAdminConfigOpen}
+              onClose={() => setIsAdminConfigOpen(false)}
+            />
           </SidebarProvider>
         </DeepLinkProvider>
       </ThemeProvider>

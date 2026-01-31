@@ -209,6 +209,11 @@ const validInvokeChannels = [
   "publish:cancel",
   "publish:diagnostics",
   "publish:broker-status",
+  // Admin Config (owner-only)
+  "admin:get-config-status",
+  "admin:save-broker-config",
+  "admin:test-broker-auth",
+  "admin:get-diagnostics",
   // Test-only channels
   // These should ALWAYS be guarded with IS_TEST_BUILD in the main process.
   // We can't detect with IS_TEST_BUILD in the preload script because
