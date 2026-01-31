@@ -8,10 +8,13 @@ import {
   User,
   AlertTriangle,
   CheckCircle,
+  CloudOff,
 } from "lucide-react";
 import { IpcClient } from "@/ipc/ipc_client";
 import { showSuccess, showError } from "@/lib/toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { isBellaModeWithSettings } from "@/shared/bella_mode";
+import { useSettings } from "@/hooks/useSettings";
 
 type VaultAuthReason =
   | "AUTHENTICATED"
@@ -51,6 +54,8 @@ export function VaultAuth({
   compact = false,
 }: VaultAuthProps = {}) {
   const queryClient = useQueryClient();
+  const { settings } = useSettings();
+  const isBellaMode = isBellaModeWithSettings(settings ?? undefined);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUpMode, setIsSignUpMode] = useState(false);
@@ -235,28 +240,64 @@ export function VaultAuth({
         return {
           title: "Session expired",
           description: "Your Vault session has expired. Please sign in again.",
+          showForm: true,
         };
       case "TOKEN_REFRESH_FAILED":
         return {
           title: "Session refresh failed",
           description: "Could not refresh your session. Please sign in again.",
+          showForm: true,
         };
       case "CONFIG_MISSING":
+        // In Bella Mode, don't tell user to go to settings (it's hidden)
+        if (isBellaMode) {
+          return {
+            title: "Vault not available",
+            description:
+              "Cloud backups are not configured for this build. Please contact support or update to the latest version.",
+            showForm: false,
+          };
+        }
         return {
           title: "Configure Vault first",
           description:
             "Enter your Supabase URL and publishable key in Settings above.",
+          showForm: false,
         };
       default:
         return {
           title: "Sign in to Vault to enable cloud backups",
           description:
             "Create an account or sign in with your existing Vault credentials.",
+          showForm: true,
         };
     }
   };
 
   const authMessage = getAuthMessage();
+
+  // Config missing - show different UI based on Bella Mode
+  if (!authMessage.showForm) {
+    return (
+      <div
+        className={`${compact ? "p-3" : "p-4"} bg-gray-50 dark:bg-gray-900/20 rounded-lg border border-gray-200 dark:border-gray-800`}
+      >
+        <div className="flex items-start gap-2">
+          <CloudOff
+            className={`${compact ? "h-4 w-4" : "h-5 w-5"} text-gray-500 dark:text-gray-400 mt-0.5 shrink-0`}
+          />
+          <div>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {authMessage.title}
+            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+              {authMessage.description}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Sign in form
   return (

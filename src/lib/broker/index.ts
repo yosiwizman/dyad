@@ -7,6 +7,15 @@
 // Types
 export * from "./types";
 
+// Config
+export {
+  getBrokerConfig,
+  isBrokerEnabled,
+  getBrokerDiagnostics,
+  DEFAULT_BROKER_URL,
+  type BrokerConfig,
+} from "./broker_config";
+
 // Client
 export {
   publishStart,

@@ -168,6 +168,13 @@ export function readSettings(): UserSettings {
         };
       }
     }
+    // Decrypt broker device token
+    if (combinedSettings.broker?.deviceToken?.encryptionType) {
+      combinedSettings.broker.deviceToken = {
+        value: decrypt(combinedSettings.broker.deviceToken),
+        encryptionType: combinedSettings.broker.deviceToken.encryptionType,
+      };
+    }
     for (const provider in combinedSettings.providerSettings) {
       if (combinedSettings.providerSettings[provider].apiKey) {
         const encryptionType =
@@ -233,6 +240,12 @@ export function writeSettings(settings: Partial<UserSettings>): void {
       if (session.refreshToken) {
         session.refreshToken = encrypt(session.refreshToken.value);
       }
+    }
+    // Encrypt broker device token
+    if (newSettings.broker?.deviceToken) {
+      newSettings.broker.deviceToken = encrypt(
+        newSettings.broker.deviceToken.value,
+      );
     }
     if (newSettings.supabase) {
       // Encrypt legacy tokens (kept for backwards compat)

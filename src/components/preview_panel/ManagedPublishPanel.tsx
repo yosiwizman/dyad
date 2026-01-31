@@ -29,7 +29,10 @@ import {
   Upload,
   Server,
   Globe,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 // --- Types ---
 
@@ -85,6 +88,14 @@ function ProgressStep({ icon, label, status }: ProgressStepProps) {
 
 // --- Main Component ---
 
+// Broker status response type
+interface BrokerStatusResult {
+  isEnabled: boolean;
+  isStub: boolean;
+  hostingStatus: "connected" | "not-configured";
+  brokerHost: string | null;
+}
+
 export function ManagedPublishPanel({
   appId,
   appName: _appName,
@@ -102,6 +113,24 @@ export function ManagedPublishPanel({
   const [error, setError] = useState<string | null>(null);
   const [isStub, setIsStub] = useState(false);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Fetch broker status on mount
+  const { data: brokerStatus } = useQuery<BrokerStatusResult>({
+    queryKey: ["broker-status"],
+    queryFn: async () => {
+      return IpcClient.getInstance().invoke<BrokerStatusResult>(
+        "publish:broker-status",
+      );
+    },
+    staleTime: 60000, // Refresh every minute
+  });
+
+  // Update isStub based on broker status
+  useEffect(() => {
+    if (brokerStatus) {
+      setIsStub(brokerStatus.isStub);
+    }
+  }, [brokerStatus]);
 
   // Clear polling on unmount
   useEffect(() => {
@@ -305,6 +334,29 @@ export function ManagedPublishPanel({
             ? "Create a local preview of your app. Real ABBA Hosting coming soon!"
             : "Publish your app to ABBA hosting with one click"}
         </CardDescription>
+        {/* Hosting status indicator */}
+        <div className="flex items-center gap-2 mt-2 text-xs">
+          {brokerStatus?.isEnabled ? (
+            <>
+              <Wifi className="w-3 h-3 text-green-500" />
+              <span className="text-green-600 dark:text-green-400">
+                Broker connected
+              </span>
+              {brokerStatus.brokerHost && (
+                <span className="text-gray-400 dark:text-gray-500">
+                  ({brokerStatus.brokerHost})
+                </span>
+              )}
+            </>
+          ) : (
+            <>
+              <WifiOff className="w-3 h-3 text-amber-500" />
+              <span className="text-amber-600 dark:text-amber-400">
+                Broker not configured
+              </span>
+            </>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Idle state - show publish button */}
