@@ -20,6 +20,8 @@ import {
   publishCancel as brokerPublishCancel,
   isUsingStubTransport,
   getBrokerDiagnostics,
+  isDeviceTokenConfigured,
+  isBrokerEnabled,
   type PublishDiagnostics,
 } from "../../lib/broker";
 import { createLoggedHandler } from "./safe_handle";
@@ -75,6 +77,14 @@ const inProgressPublishes = new Map<string, InProgressPublish>();
 // --- Handlers ---
 
 /**
+ * Error codes for publish operations
+ */
+export const PUBLISH_ERROR_CODES = {
+  DEVICE_TOKEN_MISSING: "DEVICE_TOKEN_MISSING",
+  BROKER_AUTH_FAILED: "BROKER_AUTH_FAILED",
+} as const;
+
+/**
  * Start a managed publish operation
  */
 async function handlePublishStart(
@@ -84,6 +94,15 @@ async function handlePublishStart(
   const { appId, profileId } = params;
 
   logger.info(`Starting managed publish for app ${appId}`);
+
+  // Check if broker is enabled but device token is missing
+  // This is a critical check - we must NOT attempt publishing without auth
+  if (isBrokerEnabled() && !isDeviceTokenConfigured()) {
+    logger.error("Publish blocked: device token not configured");
+    throw new Error(
+      `${PUBLISH_ERROR_CODES.DEVICE_TOKEN_MISSING}:Admin setup required. Device token not configured. Press Ctrl+Shift+K to open Admin Config.`,
+    );
+  }
 
   // Get app details
   const appRecord = await db.query.apps.findFirst({
@@ -267,16 +286,32 @@ async function handlePublishDiagnostics(
 interface BrokerStatusResult {
   isEnabled: boolean;
   isStub: boolean;
-  hostingStatus: "connected" | "not-configured";
+  hasDeviceToken: boolean;
+  needsAdminSetup: boolean;
+  hostingStatus: "ready" | "needs-token" | "not-configured";
   brokerHost: string | null;
 }
 
 async function handleBrokerStatus(): Promise<BrokerStatusResult> {
   const diag = getBrokerDiagnostics();
+  const hasToken = diag.hasDeviceToken;
+
+  // Determine hosting status
+  let hostingStatus: "ready" | "needs-token" | "not-configured";
+  if (!diag.isEnabled) {
+    hostingStatus = "not-configured";
+  } else if (!hasToken) {
+    hostingStatus = "needs-token";
+  } else {
+    hostingStatus = "ready";
+  }
+
   return {
     isEnabled: diag.isEnabled,
     isStub: !diag.isEnabled,
-    hostingStatus: diag.isEnabled ? "connected" : "not-configured",
+    hasDeviceToken: hasToken,
+    needsAdminSetup: diag.isEnabled && !hasToken,
+    hostingStatus,
     brokerHost: diag.brokerUrl,
   };
 }

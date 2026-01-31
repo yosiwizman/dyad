@@ -1880,4 +1880,57 @@ export class IpcClient {
     return this.ipcRenderer.invoke("publish:diagnostics", params);
   }
   // --- End Managed Publish ---
+
+  // --- Admin Config (Owner-only) ---
+  public async adminGetConfigStatus(): Promise<{
+    broker: {
+      url: string | null;
+      hasDeviceToken: boolean;
+      isEnabled: boolean;
+      configSource: "settings" | "env" | "default" | "none";
+    };
+    vault: {
+      url: string | null;
+      hasAnonKey: boolean;
+      hasSession: boolean;
+      isConfigured: boolean;
+    };
+  }> {
+    return this.ipcRenderer.invoke("admin:get-config-status");
+  }
+
+  public async adminSaveBrokerConfig(params: {
+    url?: string;
+    deviceToken?: string;
+  }): Promise<{ success: boolean; error?: string }> {
+    return this.ipcRenderer.invoke("admin:save-broker-config", params);
+  }
+
+  public async adminTestBrokerAuth(): Promise<{
+    success: boolean;
+    statusCode?: number;
+    message: string;
+  }> {
+    return this.ipcRenderer.invoke("admin:test-broker-auth");
+  }
+
+  public async adminGetDiagnostics(): Promise<{
+    broker: {
+      brokerUrl: string | null;
+      hasDeviceToken: boolean;
+      isEnabled: boolean;
+      configSource: string;
+    };
+    vault: {
+      url: string | null;
+      hasAnonKey: boolean;
+      hasSession: boolean;
+      sessionExpiresAt: string | null;
+      envDefaultsAvailable: boolean;
+    };
+    timestamp: string;
+  }> {
+    return this.ipcRenderer.invoke("admin:get-diagnostics");
+  }
+  // --- End Admin Config ---
 }
