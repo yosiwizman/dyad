@@ -13,6 +13,7 @@ const PUBLISH_IPC_CHANNELS = [
   "publish:status",
   "publish:cancel",
   "publish:diagnostics",
+  "publish:broker-status",
 ] as const;
 
 describe("Publish IPC Contract", () => {
@@ -102,6 +103,14 @@ describe("Publish IPC Contract", () => {
         }),
       ),
       isUsingStubTransport: vi.fn(() => true),
+      getBrokerDiagnostics: vi.fn(() => ({
+        brokerUrl: "https://abba-broker.vercel.app",
+        hasBrokerUrl: true,
+        hasDeviceToken: false,
+        isEnabled: true,
+        configSource: "default",
+      })),
+      isBrokerEnabled: vi.fn(() => true),
     }));
 
     // Mock safe_handle
@@ -161,10 +170,11 @@ describe("Publish IPC Contract", () => {
 describe("Publish IPC Channels Consistency", () => {
   it("should have all channels in the expected list", () => {
     // This serves as documentation and a sanity check
-    expect(PUBLISH_IPC_CHANNELS).toHaveLength(4);
+    expect(PUBLISH_IPC_CHANNELS).toHaveLength(5);
     expect(PUBLISH_IPC_CHANNELS).toContain("publish:start");
     expect(PUBLISH_IPC_CHANNELS).toContain("publish:status");
     expect(PUBLISH_IPC_CHANNELS).toContain("publish:cancel");
     expect(PUBLISH_IPC_CHANNELS).toContain("publish:diagnostics");
+    expect(PUBLISH_IPC_CHANNELS).toContain("publish:broker-status");
   });
 });

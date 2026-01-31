@@ -1,8 +1,9 @@
 /**
  * Broker Client
  *
- * Typed client for the ABBA Broker API. If BROKER_URL environment variable
- * is not set, uses a local stub transport that simulates the publish flow.
+ * Typed client for the ABBA Broker API. Uses the centralized broker config
+ * which resolves settings → env vars → defaults. If no broker URL is
+ * configured, uses a local stub transport that simulates the publish flow.
  */
 
 import { z } from "zod";
@@ -21,29 +22,29 @@ import {
   stubPublishStatus,
   stubPublishCancel,
 } from "./stub_transport";
+import { getBrokerConfig, isBrokerEnabled } from "./broker_config";
 
 // --- Configuration ---
 
 /**
- * Get the broker URL from environment, or null to use stub transport
+ * Get the broker URL from centralized config
  */
 function getBrokerUrl(): string | null {
-  const url = process.env.ABBA_BROKER_URL || process.env.BROKER_URL;
-  return url || null;
+  return getBrokerConfig().url;
 }
 
 /**
- * Get the device token for authentication
+ * Get the device token for authentication from centralized config
  */
 function getDeviceToken(): string | null {
-  return process.env.ABBA_DEVICE_TOKEN || null;
+  return getBrokerConfig().deviceToken;
 }
 
 /**
  * Check if we should use the stub transport
  */
 export function isUsingStubTransport(): boolean {
-  return getBrokerUrl() === null;
+  return !isBrokerEnabled();
 }
 
 /**

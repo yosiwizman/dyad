@@ -99,30 +99,70 @@ queued → packaging → uploading → building → deploying → ready
 
 Terminal states: `ready`, `failed`, `cancelled`
 
-## Environment Variables
+## Configuration
+
+### Settings Schema
+
+Broker configuration can be stored in user settings:
+
+| Setting Key          | Type   | Description                      |
+| -------------------- | ------ | -------------------------------- |
+| `broker.url`         | string | URL of the ABBA Broker API       |
+| `broker.deviceToken` | Secret | Authentication token (encrypted) |
+
+### Environment Variables
 
 | Variable            | Description                                    |
 | ------------------- | ---------------------------------------------- |
 | `ABBA_BROKER_URL`   | URL of the ABBA Broker API (optional)          |
 | `BROKER_URL`        | Alias for `ABBA_BROKER_URL`                    |
-| `ABBA_DEVICE_TOKEN` | Authentication token for the broker (required) |
+| `ABBA_DEVICE_TOKEN` | Authentication token for the broker (optional) |
 
-If `ABBA_BROKER_URL` is not set, the stub transport is used and returns local `file://` URLs.
+### Configuration Priority
+
+Broker configuration is resolved in the following order:
+
+1. **User Settings**: `settings.broker.url` and `settings.broker.deviceToken`
+2. **Environment Variables**: `ABBA_BROKER_URL` / `ABBA_DEVICE_TOKEN`
+3. **Built-in Default**: `https://abba-broker.vercel.app` (in production builds)
+
+In production (Bella Mode), the default broker URL is used automatically.
+In development, the stub transport is used unless a broker URL is configured.
+
+### IPC Channels
+
+| Channel                 | Description                         |
+| ----------------------- | ----------------------------------- |
+| `publish:start`         | Start a publish operation           |
+| `publish:status`        | Poll current status                 |
+| `publish:cancel`        | Cancel in-progress publish          |
+| `publish:diagnostics`   | Get diagnostics for error reporting |
+| `publish:broker-status` | Get broker connection status        |
+
+### Hosting Status Indicator
+
+The Managed Publish panel shows a hosting status indicator:
+
+- **Broker connected**: Shows green icon with broker host (e.g., `abba-broker.vercel.app`)
+- **Broker not configured**: Shows amber icon with "Broker not configured" message
 
 ### Enabling Real Hosting
 
-To enable real hosting with the ABBA Broker:
+Real hosting is enabled automatically in production builds using the default broker URL.
+For custom broker setups:
 
-1. Set the environment variables:
+1. Set via environment variables:
 
    ```bash
-   ABBA_BROKER_URL=https://abba-broker.vercel.app
+   ABBA_BROKER_URL=https://your-broker.example.com
    ABBA_DEVICE_TOKEN=your-device-token
    ```
 
-2. The UI will automatically switch from "Local Preview" mode to "Live Hosting" mode.
+2. Or set via user settings (for runtime configuration)
 
-3. Apps will be deployed to Vercel and receive real `https://` URLs.
+3. The UI will automatically switch from "Local Preview" mode to "Live Hosting" mode.
+
+4. Apps will be deployed to Vercel and receive real `https://` URLs.
 
 ## Usage
 

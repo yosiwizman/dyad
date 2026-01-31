@@ -122,4 +122,6 @@ export interface PublishDiagnostics {
   timestamp: string;
   // Sensitive fields are redacted
   brokerUrl?: string; // Redacted to show only domain
+  brokerConfigSource?: "settings" | "env" | "default" | "none";
+  brokerEnabled?: boolean;
 }

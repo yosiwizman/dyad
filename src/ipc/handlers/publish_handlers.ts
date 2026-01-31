@@ -19,6 +19,8 @@ import {
   publishStatus as brokerPublishStatus,
   publishCancel as brokerPublishCancel,
   isUsingStubTransport,
+  getBrokerDiagnostics,
+  isBrokerEnabled,
   type PublishDiagnostics,
 } from "../../lib/broker";
 import { createLoggedHandler } from "./safe_handle";
@@ -233,24 +235,17 @@ async function handlePublishDiagnostics(
 
   const inProgress = publishId ? inProgressPublishes.get(publishId) : undefined;
 
-  // Get broker URL and redact it
-  const brokerUrl = process.env.ABBA_BROKER_URL || process.env.BROKER_URL;
-  let redactedBrokerUrl: string | undefined;
-  if (brokerUrl) {
-    try {
-      const url = new URL(brokerUrl);
-      redactedBrokerUrl = `${url.protocol}//${url.host}`;
-    } catch {
-      redactedBrokerUrl = "[invalid-url]";
-    }
-  }
+  // Get broker diagnostics from centralized config
+  const brokerDiag = getBrokerDiagnostics();
 
   const diagnostics: PublishDiagnostics = {
     publishId,
     appId,
     status: inProgress ? "queued" : "failed",
     timestamp: new Date().toISOString(),
-    brokerUrl: redactedBrokerUrl || "[stub-transport]",
+    brokerUrl: brokerDiag.brokerUrl || "[stub-transport]",
+    brokerConfigSource: brokerDiag.configSource,
+    brokerEnabled: brokerDiag.isEnabled,
   };
 
   if (inProgress) {
@@ -267,6 +262,26 @@ async function handlePublishDiagnostics(
   return diagnostics;
 }
 
+/**
+ * Get broker hosting status for UI display
+ */
+interface BrokerStatusResult {
+  isEnabled: boolean;
+  isStub: boolean;
+  hostingStatus: "connected" | "not-configured";
+  brokerHost: string | null;
+}
+
+async function handleBrokerStatus(): Promise<BrokerStatusResult> {
+  const diag = getBrokerDiagnostics();
+  return {
+    isEnabled: diag.isEnabled,
+    isStub: !diag.isEnabled,
+    hostingStatus: diag.isEnabled ? "connected" : "not-configured",
+    brokerHost: diag.brokerUrl,
+  };
+}
+
 // --- Registration ---
 
 export function registerPublishHandlers(): void {
@@ -274,6 +289,7 @@ export function registerPublishHandlers(): void {
   handle("publish:status", handlePublishStatus);
   handle("publish:cancel", handlePublishCancel);
   handle("publish:diagnostics", handlePublishDiagnostics);
+  handle("publish:broker-status", handleBrokerStatus);
 
   logger.info("Publish IPC handlers registered");
 }

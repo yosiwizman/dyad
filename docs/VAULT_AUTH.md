@@ -89,10 +89,46 @@ Vault requires Supabase configuration:
 1. **Supabase URL**: The project URL (e.g., `https://xxx.supabase.co`)
 2. **Publishable Key**: The `anon` key from Supabase (public, safe for client)
 
-These can be set via:
+### Configuration Sources (Priority Order)
 
-- Settings UI → Vault section
-- Environment variables: `VAULT_SUPABASE_URL`, `VAULT_SUPABASE_ANON_KEY`
+1. **User Settings**: `vault.supabaseUrl` and `vault.supabaseAnonKey`
+2. **Environment Variables**: `ABBA_VAULT_SUPABASE_URL`, `ABBA_VAULT_SUPABASE_ANON_KEY`
+3. **Build-time Defaults**: Injected via GitHub Actions during release builds
+
+### Environment Variables
+
+| Variable                       | Description                                     |
+| ------------------------------ | ----------------------------------------------- |
+| `ABBA_VAULT_SUPABASE_URL`      | Supabase project URL                            |
+| `ABBA_VAULT_SUPABASE_ANON_KEY` | Supabase publishable (anon) key                 |
+| `VAULT_SUPABASE_URL`           | Legacy alias for `ABBA_VAULT_SUPABASE_URL`      |
+| `VAULT_SUPABASE_ANON_KEY`      | Legacy alias for `ABBA_VAULT_SUPABASE_ANON_KEY` |
+
+### Build-time Configuration
+
+For production builds, Vault credentials are injected during the release build via GitHub Actions secrets:
+
+```yaml
+# In .github/workflows/release.yml
+env:
+  ABBA_VAULT_SUPABASE_URL: ${{ secrets.ABBA_VAULT_SUPABASE_URL }}
+  ABBA_VAULT_SUPABASE_ANON_KEY: ${{ secrets.ABBA_VAULT_SUPABASE_ANON_KEY }}
+```
+
+### Bella Mode Behavior
+
+In **Bella Mode** (production builds):
+
+- If Vault is properly configured (build-time injection worked), users see the normal sign-in form
+- If Vault is NOT configured (secrets missing), users see:
+  - "Vault not available" message
+  - No sign-in form (to avoid confusion since Settings is hidden)
+  - Guidance to contact support or update to latest version
+
+### Settings UI
+
+- Settings UI → Vault section (only visible in Developer Mode)
+- Environment variables override Settings values
 
 ## Diagnostics
 

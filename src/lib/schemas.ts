@@ -217,6 +217,16 @@ export const VaultSettingsSchema = z.object({
 });
 export type VaultSettings = z.infer<typeof VaultSettingsSchema>;
 
+/**
+ * Broker settings for managed publishing.
+ * Stores broker URL and device token for authentication.
+ */
+export const BrokerSettingsSchema = z.object({
+  url: z.string().optional(),
+  deviceToken: SecretSchema.optional(),
+});
+export type BrokerSettings = z.infer<typeof BrokerSettingsSchema>;
+
 export const ExperimentsSchema = z.object({
   // Deprecated
   enableLocalAgent: z.boolean().describe("DEPRECATED").optional(),
@@ -300,6 +310,7 @@ export const UserSettingsSchema = z
     supabase: SupabaseSchema.optional(),
     neon: NeonSchema.optional(),
     vault: VaultSettingsSchema.optional(),
+    broker: BrokerSettingsSchema.optional(),
     autoApproveChanges: z.boolean().optional(),
     telemetryConsent: z.enum(["opted_in", "opted_out", "unset"]).optional(),
     telemetryUserId: z.string().optional(),
