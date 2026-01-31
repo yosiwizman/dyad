@@ -13,7 +13,6 @@ import {
   hasUnclosedDyadWrite,
 } from "../ipc/handlers/chat_stream_handlers";
 import fs from "node:fs";
-import path from "node:path";
 import { db } from "../db";
 import { cleanFullResponse } from "../ipc/utils/cleanFullResponse";
 import { gitAdd, gitRemove, gitCommit } from "../ipc/utils/git_utils";

@@ -1,6 +1,5 @@
 import { safeJoin } from "@/ipc/utils/path_utils";
 import { describe, it, expect } from "vitest";
-import path from "node:path";
 import os from "node:os";
 
 describe("safeJoin", () => {
