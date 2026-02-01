@@ -187,6 +187,7 @@ const validInvokeChannels = [
   // Vault Auth
   "vault:auth-sign-in",
   "vault:auth-sign-out",
+  "vault:auth-reset",
   "vault:auth-status",
   "vault:auth-refresh",
   "vault:auth-anonymous",

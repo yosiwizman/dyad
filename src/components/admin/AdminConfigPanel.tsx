@@ -33,6 +33,7 @@ import {
   EyeOff,
   ChevronDown,
   ChevronUp,
+  RotateCcw,
 } from "lucide-react";
 import { VaultAuth } from "@/components/vault/VaultAuth";
 
@@ -71,6 +72,7 @@ export function AdminConfigPanel({ isOpen, onClose }: AdminConfigPanelProps) {
     message: string;
   } | null>(null);
   const [showVaultSignIn, setShowVaultSignIn] = useState(false);
+  const [resettingVault, setResettingVault] = useState(false);
 
   // Load current status
   const loadStatus = useCallback(async () => {
@@ -153,6 +155,25 @@ export function AdminConfigPanel({ isOpen, onClose }: AdminConfigPanelProps) {
     } catch (err) {
       console.error("Failed to copy diagnostics:", err);
       showError("Failed to copy diagnostics");
+    }
+  };
+
+  // Reset Vault session
+  const handleResetVault = async () => {
+    setResettingVault(true);
+    try {
+      const result = await IpcClient.getInstance().vaultReset();
+      if (result.success) {
+        showSuccess(result.message);
+        await loadStatus();
+        setShowVaultSignIn(true); // Show sign-in form after reset
+      } else {
+        showError(result.message);
+      }
+    } catch (err: any) {
+      showError(err.message || "Failed to reset Vault session");
+    } finally {
+      setResettingVault(false);
     }
   };
 
@@ -353,6 +374,29 @@ export function AdminConfigPanel({ isOpen, onClose }: AdminConfigPanelProps) {
                         />
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* Reset Vault Session button */}
+                {status?.vault.isConfigured && (
+                  <div className="mt-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleResetVault}
+                      disabled={resettingVault}
+                      className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                    >
+                      {resettingVault ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <RotateCcw className="w-4 h-4 mr-2" />
+                      )}
+                      Reset Vault Session
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Clear cached tokens if Vault auth is stuck
+                    </p>
                   </div>
                 )}
               </div>

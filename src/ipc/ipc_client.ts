@@ -1932,5 +1932,13 @@ export class IpcClient {
   }> {
     return this.ipcRenderer.invoke("admin:get-diagnostics");
   }
+
+  /**
+   * Reset Vault session completely.
+   * Clears all auth tokens and cached session data.
+   */
+  public async vaultReset(): Promise<{ success: boolean; message: string }> {
+    return this.ipcRenderer.invoke("vault:auth-reset");
+  }
   // --- End Admin Config ---
 }

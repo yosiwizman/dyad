@@ -25,4 +25,5 @@ export {
   publishStatus,
   publishCancel,
   isUsingStubTransport,
+  BrokerApiError,
 } from "./client";
