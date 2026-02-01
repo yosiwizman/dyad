@@ -211,6 +211,60 @@ The ABBA Broker is now available at `https://abba-broker.vercel.app`. It provide
 - Tokens are validated server-side with constant-time comparison
 - No owner secrets (Vercel tokens, etc.) are exposed to the desktop app
 
+### Auth Validation Endpoint
+
+The broker provides a dedicated endpoint for validating device tokens:
+
+```
+GET /api/health/auth
+Header: x-abba-device-token: <token>
+```
+
+**Responses:**
+
+| Status | Message                    | Meaning                           |
+| ------ | -------------------------- | --------------------------------- |
+| 200    | `{ ok: true, auth: "ok" }` | Token is valid                    |
+| 401    | `Missing device token`     | Header not provided               |
+| 401    | `Invalid device token`     | Token doesn't match broker config |
+
+This endpoint never returns the actual token value, making it safe for debugging.
+
+### Debugging Token Mismatch
+
+If publish fails with "Invalid device token" (401):
+
+1. **Check token is set on device:**
+
+   - Open Admin Config (Ctrl+Shift+K / Cmd+Shift+K)
+   - Verify "Device Token" shows "Configured"
+   - If not, enter your token and click Save
+
+2. **Test connection:**
+
+   - Click "Test Connection" in Admin Config
+   - This calls `/api/health/auth` and shows:
+     - "Connected + Auth OK ✓" - Token matches
+     - "Token invalid: Your token (hash: abc123...) does not match..." - Mismatch
+     - "Token missing: The token was not sent..." - Client-side issue
+
+3. **Compare token hash prefixes:**
+
+   - Click "Copy Diagnostics" to get `tokenHashPrefix` (first 8 chars of SHA256)
+   - Compare with the broker's token hash (check Vercel logs or admin panel)
+   - If hashes differ, the token values don't match
+
+4. **Common issues:**
+
+   - Copy/paste added extra whitespace or newlines (tokens are now auto-trimmed)
+   - Token was changed on broker but not updated on device
+   - Wrong token was entered (check for typos)
+
+5. **Reset and re-enter:**
+   - Clear the token field
+   - Re-copy the exact token from your broker admin
+   - Paste and save (do not manually type)
+
 ## Testing
 
 Tests verify:

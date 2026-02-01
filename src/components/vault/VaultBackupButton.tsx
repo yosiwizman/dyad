@@ -1,8 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { CloudUpload, Loader2, Copy, AlertTriangle } from "lucide-react";
 import { IpcClient } from "@/ipc/ipc_client";
-import { showSuccess, showError, showWarning } from "@/lib/toast";
+import { showSuccess, showError, toast } from "@/lib/toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
@@ -64,6 +64,8 @@ export function VaultBackupButton({
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
+  // Track pending toasts to dismiss on success
+  const pendingToastRef = useRef<string | number | null>(null);
 
   /**
    * Copy vault diagnostics to clipboard for support
@@ -118,16 +120,15 @@ export function VaultBackupButton({
 
           const refreshed = await attemptRefresh();
           if (refreshed) {
-            // Retry the backup once
+            // Retry the backup once (no intermediate toast - just show final success)
             console.log("Session refreshed, retrying backup...");
-            showWarning("Session refreshed, retrying...");
             try {
               await ipcClient.invoke<void>("vault:create-backup", {
                 appId: appIdParam,
                 notes: notesParam,
               });
               setIsRetrying(false);
-              return { success: true };
+              return { success: true, wasRetry: true };
             } catch (retryError) {
               setIsRetrying(false);
               throw retryError;
@@ -153,12 +154,19 @@ export function VaultBackupButton({
       const result = await performBackupWithRetry(appId, notes);
       if (!result.success && result.needsAuth) {
         // Don't treat as mutation error - we're showing auth dialog
-        return;
+        return { needsAuth: true };
       }
+      return result;
     },
-    onSuccess: () => {
-      // Only show success if we actually completed the backup
-      if (!showAuthDialog) {
+    onSuccess: (result) => {
+      // Dismiss any pending intermediate toasts
+      if (pendingToastRef.current) {
+        toast.dismiss(pendingToastRef.current);
+        pendingToastRef.current = null;
+      }
+
+      // Only show success if we actually completed the backup (not showing auth dialog)
+      if (!showAuthDialog && !result?.needsAuth) {
         showSuccess(`Backup created for "${appName}"`);
         queryClient.invalidateQueries({ queryKey: ["vault-backups"] });
         setIsDialogOpen(false);
@@ -190,8 +198,8 @@ export function VaultBackupButton({
   const handleAuthSuccess = () => {
     setShowAuthDialog(false);
     setAuthError(null);
-    // Retry the backup
-    showSuccess("Signed in successfully. Retrying backup...");
+    // Show a loading toast while retrying (will be dismissed on success)
+    pendingToastRef.current = toast.loading("Signed in. Creating backup...");
     backupMutation.mutate({ appId, notes: notes || undefined });
   };
 

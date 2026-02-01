@@ -7,6 +7,7 @@
  */
 
 import log from "electron-log";
+import crypto from "crypto";
 import { createLoggedHandler } from "./safe_handle";
 import { readSettings, writeSettings } from "../../main/settings";
 import { getBrokerConfig, getBrokerDiagnostics } from "../../lib/broker";
@@ -45,6 +46,13 @@ export interface TestBrokerAuthResult {
   success: boolean;
   statusCode?: number;
   message: string;
+  /** Detailed reason for failure */
+  reason?:
+    | "token_not_set"
+    | "token_missing"
+    | "token_invalid"
+    | "connection_error"
+    | "server_error";
 }
 
 // --- Handlers ---
@@ -84,6 +92,36 @@ async function handleGetConfigStatus(): Promise<AdminConfigStatus> {
 }
 
 /**
+ * Normalize device token: trim whitespace, remove trailing newlines
+ */
+function normalizeDeviceToken(token: string): string {
+  return token.trim().replace(/[\r\n]+$/, "");
+}
+
+/**
+ * Validate device token format
+ */
+function validateDeviceToken(
+  token: string,
+): { valid: true } | { valid: false; error: string } {
+  if (token.length < 16) {
+    return {
+      valid: false,
+      error: `Device token is too short (${token.length} chars). Token must be at least 16 characters.`,
+    };
+  }
+  return { valid: true };
+}
+
+/**
+ * Get first 8 chars of SHA256 hash of token (safe fingerprint for diagnostics)
+ */
+function getTokenHashPrefix(token: string): string {
+  const hash = crypto.createHash("sha256").update(token).digest("hex");
+  return hash.substring(0, 8);
+}
+
+/**
  * Save broker configuration
  */
 async function handleSaveBrokerConfig(
@@ -101,17 +139,28 @@ async function handleSaveBrokerConfig(
       brokerSettings.url = url || undefined;
     }
 
-    // Update device token if provided (encrypt it)
+    // Update device token if provided (with normalization and validation)
     if (deviceToken !== undefined) {
       if (deviceToken) {
-        brokerSettings.deviceToken = { value: deviceToken };
+        const normalizedToken = normalizeDeviceToken(deviceToken);
+
+        // Validate token
+        const validation = validateDeviceToken(normalizedToken);
+        if (!validation.valid) {
+          return { success: false, error: validation.error };
+        }
+
+        brokerSettings.deviceToken = { value: normalizedToken };
+        logger.info(
+          `Broker token saved (length: ${normalizedToken.length}, hash prefix: ${getTokenHashPrefix(normalizedToken)})`,
+        );
       } else {
         brokerSettings.deviceToken = undefined;
       }
     }
 
     writeSettings({ broker: brokerSettings });
-    logger.info("Broker config saved (token masked)");
+    logger.info("Broker config saved");
 
     return { success: true };
   } catch (error) {
@@ -122,7 +171,8 @@ async function handleSaveBrokerConfig(
 }
 
 /**
- * Test broker authentication by calling /api/health
+ * Test broker authentication by calling /api/health/auth
+ * This endpoint validates the device token and returns clear error messages.
  */
 async function handleTestBrokerAuth(): Promise<TestBrokerAuthResult> {
   try {
@@ -132,18 +182,21 @@ async function handleTestBrokerAuth(): Promise<TestBrokerAuthResult> {
       return {
         success: false,
         message: "Broker URL not configured",
+        reason: "token_not_set",
       };
     }
 
     if (!config.deviceToken) {
       return {
         success: false,
-        message: "Device token not configured",
+        message:
+          "Device token not set on this device. Enter your token above and save.",
+        reason: "token_not_set",
       };
     }
 
-    // Test the broker health endpoint with auth header
-    const response = await fetch(`${config.url}/api/health`, {
+    // Test the authenticated health endpoint
+    const response = await fetch(`${config.url}/api/health/auth`, {
       method: "GET",
       headers: {
         "x-abba-device-token": config.deviceToken,
@@ -154,23 +207,54 @@ async function handleTestBrokerAuth(): Promise<TestBrokerAuthResult> {
       return {
         success: true,
         statusCode: response.status,
-        message: "Broker connection successful",
+        message: "Connected + Auth OK ✓",
       };
     }
 
-    // Handle specific error codes
+    // Parse error response
+    let errorMessage = "Unknown error";
+    try {
+      const errorBody = await response.json();
+      errorMessage = errorBody.message || errorBody.error || "Unknown error";
+    } catch {
+      errorMessage = await response.text();
+    }
+
+    // Handle 401 with specific messages from broker
     if (response.status === 401) {
+      if (errorMessage.toLowerCase().includes("missing")) {
+        return {
+          success: false,
+          statusCode: 401,
+          message: "Token missing: The token was not sent to the broker.",
+          reason: "token_missing",
+        };
+      } else {
+        // Token was sent but doesn't match
+        const hashPrefix = getTokenHashPrefix(config.deviceToken);
+        return {
+          success: false,
+          statusCode: 401,
+          message: `Token invalid: Your token (hash: ${hashPrefix}...) does not match the broker's ABBA_DEVICE_TOKEN.`,
+          reason: "token_invalid",
+        };
+      }
+    }
+
+    // Handle server errors
+    if (response.status >= 500) {
       return {
         success: false,
-        statusCode: 401,
-        message: "Invalid device token. Please check and try again.",
+        statusCode: response.status,
+        message: `Broker server error (${response.status}): ${errorMessage}`,
+        reason: "server_error",
       };
     }
 
     return {
       success: false,
       statusCode: response.status,
-      message: `Broker returned status ${response.status}`,
+      message: `Broker returned status ${response.status}: ${errorMessage}`,
     };
   } catch (error) {
     const message =
@@ -179,6 +263,7 @@ async function handleTestBrokerAuth(): Promise<TestBrokerAuthResult> {
     return {
       success: false,
       message: `Connection error: ${message}`,
+      reason: "connection_error",
     };
   }
 }
@@ -187,7 +272,10 @@ async function handleTestBrokerAuth(): Promise<TestBrokerAuthResult> {
  * Get diagnostics for support (no secrets)
  */
 async function handleGetDiagnostics(): Promise<{
-  broker: ReturnType<typeof getBrokerDiagnostics>;
+  broker: ReturnType<typeof getBrokerDiagnostics> & {
+    tokenLength: number | null;
+    tokenHashPrefix: string | null;
+  };
   vault: {
     url: string | null;
     hasAnonKey: boolean;
@@ -198,7 +286,16 @@ async function handleGetDiagnostics(): Promise<{
   timestamp: string;
 }> {
   const brokerDiag = getBrokerDiagnostics();
+  const brokerConfig = getBrokerConfig();
   const settings = readSettings();
+
+  // Add token diagnostics (safe - no actual token value)
+  const tokenLength = brokerConfig.deviceToken
+    ? brokerConfig.deviceToken.length
+    : null;
+  const tokenHashPrefix = brokerConfig.deviceToken
+    ? getTokenHashPrefix(brokerConfig.deviceToken)
+    : null;
 
   const vaultSession = settings.vault?.authSession;
   let sessionExpiresAt: string | null = null;
@@ -211,7 +308,11 @@ async function handleGetDiagnostics(): Promise<{
   }
 
   return {
-    broker: brokerDiag,
+    broker: {
+      ...brokerDiag,
+      tokenLength,
+      tokenHashPrefix,
+    },
     vault: {
       url: settings.vault?.supabaseUrl || DEFAULT_VAULT_URL || null,
       hasAnonKey: !!(
