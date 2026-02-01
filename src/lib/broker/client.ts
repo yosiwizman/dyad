@@ -60,6 +60,39 @@ function getAuthHeaders(): Record<string, string> {
 
 // --- HTTP Transport ---
 
+/**
+ * Custom error class for broker API errors with detailed diagnostics
+ */
+export class BrokerApiError extends Error {
+  constructor(
+    message: string,
+    public readonly statusCode: number,
+    public readonly statusText: string,
+    public readonly responseBody?: string,
+  ) {
+    super(message);
+    this.name = "BrokerApiError";
+  }
+
+  /** Check if this is an authentication error */
+  isAuthError(): boolean {
+    return this.statusCode === 401;
+  }
+
+  /** Get diagnostics-safe error info (no secrets) */
+  getDiagnostics(): {
+    statusCode: number;
+    statusText: string;
+    message: string;
+  } {
+    return {
+      statusCode: this.statusCode,
+      statusText: this.statusText,
+      message: this.message,
+    };
+  }
+}
+
 async function httpFetch<T>(
   url: string,
   options: RequestInit,
@@ -76,7 +109,47 @@ async function httpFetch<T>(
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Broker request failed: ${response.status} - ${errorText}`);
+
+    // Parse error body if JSON
+    let errorMessage = errorText;
+    try {
+      const errorJson = JSON.parse(errorText);
+      errorMessage = errorJson.message || errorJson.error || errorText;
+    } catch {
+      // Keep raw text
+    }
+
+    // Create descriptive error based on status code
+    let userMessage: string;
+    switch (response.status) {
+      case 401:
+        userMessage = `Authentication failed (${response.status}): ${errorMessage}. Check your device token in Admin Config (Ctrl+Shift+K).`;
+        break;
+      case 403:
+        userMessage = `Access denied (${response.status}): ${errorMessage}`;
+        break;
+      case 404:
+        userMessage = `Resource not found (${response.status}): ${errorMessage}`;
+        break;
+      case 429:
+        userMessage = `Rate limited (${response.status}): Too many requests. Please wait and try again.`;
+        break;
+      case 500:
+      case 502:
+      case 503:
+      case 504:
+        userMessage = `Broker server error (${response.status}): ${errorMessage}. Please try again later.`;
+        break;
+      default:
+        userMessage = `Broker request failed (${response.status}): ${errorMessage}`;
+    }
+
+    throw new BrokerApiError(
+      userMessage,
+      response.status,
+      response.statusText,
+      errorText,
+    );
   }
 
   const data = await response.json();

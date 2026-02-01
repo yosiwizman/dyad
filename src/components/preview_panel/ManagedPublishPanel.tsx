@@ -34,6 +34,7 @@ import {
   Shield,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useOwnerSetup } from "@/contexts/OwnerSetupContext";
 
 // --- Types ---
 
@@ -106,6 +107,7 @@ export function ManagedPublishPanel({
   onPublishComplete,
 }: ManagedPublishPanelProps) {
   const { activeProfile } = useProfile();
+  const { openSetup } = useOwnerSetup();
   const [phase, setPhase] = useState<PublishPhase>("idle");
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
@@ -377,25 +379,27 @@ export function ManagedPublishPanel({
                 <div className="flex items-center gap-2 mb-2">
                   <Shield className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                   <span className="font-medium text-amber-800 dark:text-amber-200">
-                    Admin Setup Required
+                    Owner Setup Required
                   </span>
                 </div>
                 <p className="text-sm text-amber-700 dark:text-amber-300 mb-3">
-                  Device token not configured. Ask the device owner to press{" "}
-                  <kbd className="px-1.5 py-0.5 text-xs font-mono bg-amber-100 dark:bg-amber-800 rounded">
-                    Ctrl+Shift+K
-                  </kbd>{" "}
-                  to open Admin Config.
+                  Device token not configured. The device owner needs to
+                  complete setup to enable publishing.
                 </p>
-                <Button
-                  variant="outline"
-                  onClick={handlePublish}
-                  className="w-full"
-                  size="sm"
-                >
-                  <Rocket className="w-4 h-4 mr-2" />
-                  Try Anyway (Local Preview)
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => openSetup(0)}
+                    className="flex-1 bg-amber-600 hover:bg-amber-700"
+                    size="sm"
+                  >
+                    <Shield className="w-4 h-4 mr-2" />
+                    Open Owner Setup
+                  </Button>
+                  <Button variant="outline" onClick={handlePublish} size="sm">
+                    <Rocket className="w-4 h-4 mr-2" />
+                    Local Preview
+                  </Button>
+                </div>
               </div>
             ) : (
               <Button

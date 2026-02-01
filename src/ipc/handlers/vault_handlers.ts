@@ -964,6 +964,41 @@ export function registerVaultHandlers() {
   });
 
   /**
+   * Reset Vault session completely.
+   * Clears all auth tokens and cached session data.
+   * Use this when vault auth is in a broken state.
+   */
+  handle(
+    "vault:auth-reset",
+    async (): Promise<{ success: boolean; message: string }> => {
+      try {
+        logger.info("Resetting Vault session...");
+
+        // Clear all vault auth data
+        const settings = readSettings();
+        if (settings.vault) {
+          writeSettings({
+            vault: {
+              ...settings.vault,
+              authSession: undefined,
+            },
+          });
+        }
+
+        logger.info("Vault session reset complete");
+        return {
+          success: true,
+          message: "Vault session cleared. Please sign in again.",
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Reset failed";
+        logger.error(`Vault reset failed: ${message}`);
+        return { success: false, message };
+      }
+    },
+  );
+
+  /**
    * Get Vault auth status with detailed reason
    */
   handle("vault:auth-status", async (): Promise<VaultAuthStatusResult> => {

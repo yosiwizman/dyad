@@ -2,6 +2,10 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeProvider } from "../contexts/ThemeContext";
 import { DeepLinkProvider } from "../contexts/DeepLinkContext";
+import {
+  OwnerSetupProvider,
+  useOwnerSetup,
+} from "../contexts/OwnerSetupContext";
 import { Toaster } from "sonner";
 import { TitleBar } from "./TitleBar";
 import { useEffect, useState, type ReactNode } from "react";
@@ -9,6 +13,7 @@ import { useRunApp } from "@/hooks/useRunApp";
 import { useProfile } from "@/contexts/ProfileContext";
 import { ProfileLockScreen } from "@/components/profile/ProfileLockScreen";
 import { AdminConfigPanel } from "@/components/admin/AdminConfigPanel";
+import { OwnerSetupWizard } from "@/components/admin/OwnerSetupWizard";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
   appConsoleEntriesAtom,
@@ -106,8 +111,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <>
-      <ThemeProvider>
+    <ThemeProvider>
+      <OwnerSetupProvider>
         <DeepLinkProvider>
           <SidebarProvider>
             <TitleBar />
@@ -124,9 +129,25 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               isOpen={isAdminConfigOpen}
               onClose={() => setIsAdminConfigOpen(false)}
             />
+            {/* Owner Setup Wizard - rendered via context */}
+            <OwnerSetupWizardContainer />
           </SidebarProvider>
         </DeepLinkProvider>
-      </ThemeProvider>
-    </>
+      </OwnerSetupProvider>
+    </ThemeProvider>
+  );
+}
+
+/**
+ * Container component for Owner Setup Wizard that uses the context
+ */
+function OwnerSetupWizardContainer() {
+  const { isOpen, closeSetup, initialStep } = useOwnerSetup();
+  return (
+    <OwnerSetupWizard
+      isOpen={isOpen}
+      onClose={closeSetup}
+      initialStep={initialStep}
+    />
   );
 }
