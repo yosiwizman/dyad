@@ -79,13 +79,83 @@ The release workflow includes a `verify-assets` job that runs `scripts/verify-re
 
 ## Troubleshooting
 
-### Missing Assets
+### Missing Assets Playbook
 
-If the release is missing assets:
+If a GitHub Release page shows **only source archives** (no .exe, .zip, .nupkg):
 
-1. **Check the workflow logs** for build errors on specific platforms
-2. **Look for signing failures** (certificate issues)
-3. **Check for timeout issues** (large uploads)
+#### Step 1: Identify the Problem
+
+```bash
+# Check if the release workflow ran for the tag
+gh run list --repo yosiwizman/dyad --workflow release.yml --limit 5
+
+# Look for FAILED (X) status on the release run
+# Get the run ID from the output
+
+# View the failed run details
+gh run view <RUN_ID> --repo yosiwizman/dyad
+
+# Get the actual failure logs
+gh run view <RUN_ID> --repo yosiwizman/dyad --log-failed
+```
+
+#### Step 2: Common Failure Causes
+
+| Symptom | Root Cause | Fix |
+|---------|------------|-----|
+| "Unexpected '}'" in esbuild | Missing brace in TypeScript | Fix syntax, bump version, re-tag |
+| Build timeout | Large assets, slow runners | Re-run workflow |
+| Signing failed | Missing/expired certificates | Check secrets, re-run |
+| "Rate limit" errors | GitHub API throttling | Wait 15 min, re-run |
+| "Draft release not found" | Assets not uploaded | Check platform build logs |
+
+#### Step 3: Recovery Options
+
+**Option A: Re-run Failed Workflow (if builds succeeded but upload failed)**
+```bash
+# Re-run via workflow_dispatch
+gh workflow run release.yml --repo yosiwizman/dyad -f tag=v0.2.X
+```
+
+**Option B: Cut a New Patch Release (if code fix needed)**
+```bash
+# Fix the code issue
+npm version patch --no-git-tag-version
+git add .
+git commit -m "fix: <description>"
+git push origin main
+
+# Tag and push
+git tag v0.2.Y
+git push origin v0.2.Y
+```
+
+**Option C: Delete and Re-tag (if tag is broken)**
+```bash
+# Delete remote tag
+git push --delete origin v0.2.X
+# Delete local tag
+git tag -d v0.2.X
+# Re-create and push
+git tag v0.2.X
+git push origin v0.2.X
+```
+
+#### Step 4: Verify Success
+
+```bash
+# Check release has all assets
+gh release view v0.2.X --repo yosiwizman/dyad
+
+# Expected assets:
+# - ABBA.AI-0.2.X.Setup.exe (>190MB)
+# - ABBA.AI-darwin-arm64-0.2.X.zip (>180MB)
+# - ABBA.AI-darwin-x64-0.2.X.zip (>180MB)
+# - abba_ai-0.2.X-full.nupkg (>190MB)
+# - RELEASES (~80 bytes)
+```
+
+> **Warning**: A release page showing only "Source code (zip)" and "Source code (tar.gz)" means binaries were NOT uploaded. This is a failed release.
 
 ### Draft Release Not Published
 
