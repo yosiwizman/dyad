@@ -20,6 +20,10 @@ import {
 const logger = log.scope("admin-handlers");
 const handle = createLoggedHandler(logger);
 
+// Store last auth test result for diagnostics
+let lastAuthResult: TestBrokerAuthResult | null = null;
+let lastAuthTimestamp: string | null = null;
+
 // --- Types ---
 
 export interface AdminConfigStatus {
@@ -51,6 +55,7 @@ export interface TestBrokerAuthResult {
     | "token_not_set"
     | "token_missing"
     | "token_invalid"
+    | "broker_misconfigured"
     | "connection_error"
     | "server_error";
 }
@@ -204,11 +209,14 @@ async function handleTestBrokerAuth(): Promise<TestBrokerAuthResult> {
     });
 
     if (response.ok) {
-      return {
+      const result: TestBrokerAuthResult = {
         success: true,
         statusCode: response.status,
         message: "Connected + Auth OK ✓",
       };
+      lastAuthResult = result;
+      lastAuthTimestamp = new Date().toISOString();
+      return result;
     }
 
     // Parse error response
@@ -220,10 +228,25 @@ async function handleTestBrokerAuth(): Promise<TestBrokerAuthResult> {
       errorMessage = await response.text();
     }
 
+    // Handle 503 BrokerMisconfigured - server doesn't have ABBA_DEVICE_TOKEN set
+    if (response.status === 503) {
+      const result: TestBrokerAuthResult = {
+        success: false,
+        statusCode: 503,
+        message:
+          "Broker server misconfigured: ABBA_DEVICE_TOKEN not set on server. Set it in Vercel env and redeploy.",
+        reason: "broker_misconfigured",
+      };
+      lastAuthResult = result;
+      lastAuthTimestamp = new Date().toISOString();
+      return result;
+    }
+
     // Handle 401 with specific messages from broker
     if (response.status === 401) {
+      let result: TestBrokerAuthResult;
       if (errorMessage.toLowerCase().includes("missing")) {
-        return {
+        result = {
           success: false,
           statusCode: 401,
           message: "Token missing: The token was not sent to the broker.",
@@ -232,39 +255,51 @@ async function handleTestBrokerAuth(): Promise<TestBrokerAuthResult> {
       } else {
         // Token was sent but doesn't match
         const hashPrefix = getTokenHashPrefix(config.deviceToken);
-        return {
+        result = {
           success: false,
           statusCode: 401,
           message: `Token invalid: Your token (hash: ${hashPrefix}...) does not match the broker's ABBA_DEVICE_TOKEN.`,
           reason: "token_invalid",
         };
       }
+      lastAuthResult = result;
+      lastAuthTimestamp = new Date().toISOString();
+      return result;
     }
 
-    // Handle server errors
+    // Handle other server errors
     if (response.status >= 500) {
-      return {
+      const result: TestBrokerAuthResult = {
         success: false,
         statusCode: response.status,
         message: `Broker server error (${response.status}): ${errorMessage}`,
         reason: "server_error",
       };
+      lastAuthResult = result;
+      lastAuthTimestamp = new Date().toISOString();
+      return result;
     }
 
-    return {
+    const result: TestBrokerAuthResult = {
       success: false,
       statusCode: response.status,
       message: `Broker returned status ${response.status}: ${errorMessage}`,
     };
+    lastAuthResult = result;
+    lastAuthTimestamp = new Date().toISOString();
+    return result;
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Connection failed";
     logger.error("Broker auth test failed:", message);
-    return {
+    const result: TestBrokerAuthResult = {
       success: false,
       message: `Connection error: ${message}`,
       reason: "connection_error",
     };
+    lastAuthResult = result;
+    lastAuthTimestamp = new Date().toISOString();
+    return result;
   }
 }
 
@@ -275,6 +310,8 @@ async function handleGetDiagnostics(): Promise<{
   broker: ReturnType<typeof getBrokerDiagnostics> & {
     tokenLength: number | null;
     tokenHashPrefix: string | null;
+    lastAuthStatus: string | null;
+    lastAuthTimestamp: string | null;
   };
   vault: {
     url: string | null;
@@ -284,7 +321,7 @@ async function handleGetDiagnostics(): Promise<{
     envDefaultsAvailable: boolean;
   };
   timestamp: string;
-}> {
+}>
   const brokerDiag = getBrokerDiagnostics();
   const brokerConfig = getBrokerConfig();
   const settings = readSettings();
@@ -312,6 +349,12 @@ async function handleGetDiagnostics(): Promise<{
       ...brokerDiag,
       tokenLength,
       tokenHashPrefix,
+      lastAuthStatus: lastAuthResult
+        ? lastAuthResult.success
+          ? "ok"
+          : lastAuthResult.reason || "failed"
+        : null,
+      lastAuthTimestamp,
     },
     vault: {
       url: settings.vault?.supabaseUrl || DEFAULT_VAULT_URL || null,

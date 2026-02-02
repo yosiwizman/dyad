@@ -222,13 +222,29 @@ Header: x-abba-device-token: <token>
 
 **Responses:**
 
-| Status | Message                    | Meaning                           |
-| ------ | -------------------------- | --------------------------------- |
-| 200    | `{ ok: true, auth: "ok" }` | Token is valid                    |
-| 401    | `Missing device token`     | Header not provided               |
-| 401    | `Invalid device token`     | Token doesn't match broker config |
+|| Status | Message                         | Meaning                              |
+|| ------ | ------------------------------- | ------------------------------------ |
+|| 200    | `{ ok: true, auth: "ok" }`      | Token is valid                       |
+|| 401    | `Missing device token`          | Header not provided                  |
+|| 401    | `Invalid device token`          | Token doesn't match broker config    |
+|| 503    | `{ error: "BrokerMisconfigured" }` | Server ABBA_DEVICE_TOKEN not set  |
 
 This endpoint never returns the actual token value, making it safe for debugging.
+
+### Broker Auth State Mapping (v0.2.24+)
+
+The desktop app maps broker auth responses to clear UI states:
+
+|| Auth Result          | UI State         | User Action                            |
+|| -------------------- | ---------------- | -------------------------------------- |
+|| 200 OK               | Connected        | Ready to publish                       |
+|| Token not configured | Setup Required   | Enter token in Admin Config            |
+|| 503 BrokerMisconfigured | Misconfigured | Contact admin: server token missing    |
+|| 401 Invalid Token    | Mismatch         | Token doesn't match, re-enter token    |
+|| 401 Missing Token    | Mismatch         | Client bug, token not sent             |
+|| 5xx / Network Error  | Error            | Transient error, try again later       |
+
+Diagnostics now include `lastAuthStatus` and `lastAuthTimestamp` for debugging.
 
 ### Debugging Token Mismatch
 
@@ -239,6 +255,15 @@ If publish fails with "Invalid device token" (401):
    - Open Admin Config (Ctrl+Shift+K / Cmd+Shift+K)
    - Verify "Device Token" shows "Configured"
    - If not, enter your token and click Save
+
+### Debugging "Broker Misconfigured" (503)
+
+If you see "Broker server misconfigured" or error code `BrokerMisconfigured`:
+
+1. **This is a server-side issue**, not a client-side issue
+2. The broker server does not have `ABBA_DEVICE_TOKEN` set in its environment
+3. **Fix**: Add `ABBA_DEVICE_TOKEN` to the broker's Vercel environment and redeploy
+4. **Note**: After setting the env var, you must redeploy for changes to take effect
 
 2. **Test connection:**
 
