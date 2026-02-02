@@ -32,6 +32,7 @@ When a Vault operation (like backup) fails due to an expired token:
    - Shows a clear "Vault Session Expired" dialog
    - Includes inline sign-in form for immediate re-authentication
    - Provides "Copy Diagnostics" button for support
+   - **Auto-retry**: After successful re-auth, the original operation is automatically retried
 
 ## Error Handling
 
@@ -43,7 +44,7 @@ When a Vault operation (like backup) fails due to an expired token:
 | Network Error | `network`, `fetch`, `ENOTFOUND`, `timeout`, `cannot reach` | "Cannot reach Vault. Please check your internet connection." |
 | Other Errors  | (none of the above)                                        | Original error message                                       |
 
-### Retry Flow
+### Retry Flow (v0.2.24+)
 
 ```
 Backup Attempt
@@ -52,12 +53,19 @@ Backup Attempt
     ↓ yes
 Is Auth Error?
     ↓ yes
-Attempt Refresh
+Attempt Session Refresh
     ↓
 Refresh OK?
-    ├─ yes → Retry Backup
+    ├─ yes → Retry Backup (automatic)
     └─ no  → Show Sign-in Dialog
+                    ↓
+              User Signs In
+                    ↓
+              Retry Backup (automatic)
 ```
+
+**Key UX improvement**: Users never hit a dead-end. After any auth error, they're guided
+to sign in and the backup is automatically retried upon success.
 
 ## IPC Channels
 

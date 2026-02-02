@@ -69,6 +69,7 @@ export class BrokerApiError extends Error {
     public readonly statusCode: number,
     public readonly statusText: string,
     public readonly responseBody?: string,
+    public readonly errorCode?: string,
   ) {
     super(message);
     this.name = "BrokerApiError";
@@ -77,6 +78,11 @@ export class BrokerApiError extends Error {
   /** Check if this is an authentication error */
   isAuthError(): boolean {
     return this.statusCode === 401;
+  }
+
+  /** Check if the broker server is misconfigured (missing ABBA_DEVICE_TOKEN) */
+  isBrokerMisconfigured(): boolean {
+    return this.statusCode === 503 && this.errorCode === "BrokerMisconfigured";
   }
 
   /** Get diagnostics-safe error info (no secrets) */
@@ -119,6 +125,15 @@ async function httpFetch<T>(
       // Keep raw text
     }
 
+    // Parse error code from JSON response
+    let errorCode: string | undefined;
+    try {
+      const errorJson = JSON.parse(errorText);
+      errorCode = errorJson.error;
+    } catch {
+      // Not JSON
+    }
+
     // Create descriptive error based on status code
     let userMessage: string;
     switch (response.status) {
@@ -134,9 +149,15 @@ async function httpFetch<T>(
       case 429:
         userMessage = `Rate limited (${response.status}): Too many requests. Please wait and try again.`;
         break;
+      case 503:
+        if (errorCode === "BrokerMisconfigured") {
+          userMessage = `Broker server misconfigured: ABBA_DEVICE_TOKEN not set on server. Set it in Vercel env and redeploy.`;
+        } else {
+          userMessage = `Broker server unavailable (${response.status}): ${errorMessage}. Please try again later.`;
+        }
+        break;
       case 500:
       case 502:
-      case 503:
       case 504:
         userMessage = `Broker server error (${response.status}): ${errorMessage}. Please try again later.`;
         break;
@@ -149,6 +170,7 @@ async function httpFetch<T>(
       response.status,
       response.statusText,
       errorText,
+      errorCode,
     );
   }
 
