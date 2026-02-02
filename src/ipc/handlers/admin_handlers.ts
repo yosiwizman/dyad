@@ -321,7 +321,7 @@ async function handleGetDiagnostics(): Promise<{
     envDefaultsAvailable: boolean;
   };
   timestamp: string;
-}>
+}> {
   const brokerDiag = getBrokerDiagnostics();
   const brokerConfig = getBrokerConfig();
   const settings = readSettings();
