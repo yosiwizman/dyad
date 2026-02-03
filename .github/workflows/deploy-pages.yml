@@ -13,6 +13,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  checks: read
 
 jobs:
   deploy:
@@ -29,7 +30,7 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           checks=("CI / quality (lint, typecheck, unit tests)" "CI / build (windows)" "CI / build (macos)" "CI/web preview artifact")
-          attempts=10
+          attempts=20
           interval=30
 
           for ((i=1; i<=attempts; i++)); do
@@ -37,6 +38,7 @@ jobs:
             for check in "${checks[@]}"; do
               status=$(gh api repos/$REPO/commits/$SHA/check-runs --jq ".check_runs[] | select(.name==\"$check\") | .status" | head -n1)
               conclusion=$(gh api repos/$REPO/commits/$SHA/check-runs --jq ".check_runs[] | select(.name==\"$check\") | .conclusion" | head -n1)
+              echo "Check: $check | status: ${status:-none} | conclusion: ${conclusion:-none}"
 
               if [[ -z "$status" ]]; then
                 all_ok=false
