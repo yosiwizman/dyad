@@ -1,0 +1,11 @@
+# CODEOWNERS for ABBA AI
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for all files
+* @yosiwizman
+
+# Critical paths that require explicit review
+/.github/                @yosiwizman
+/src/lib/broker/         @yosiwizman
+/src/lib/vault/          @yosiwizman
+/docs/                   @yosiwizman
