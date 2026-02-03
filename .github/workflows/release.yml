@@ -5,9 +5,13 @@
 #
 # NOTE: electron-forge creates DRAFT releases. The publish-release job
 # converts the draft to a public release after all builds complete.
+#
+# GATE: Releases are blocked unless CI/quality is green (see quality-gate job).
 
 permissions:
   contents: write
+  checks: read
+  statuses: read
 
 name: Release app
 on:
@@ -22,7 +26,61 @@ on:
         type: string
 
 jobs:
+  # Gate: Block release if CI/quality is failing on this SHA
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check CI quality status
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHA="${{ github.sha }}"
+          echo "Checking CI/quality status for SHA: $SHA"
+
+          # Wait up to 5 minutes for CI to report (in case it's still running)
+          MAX_ATTEMPTS=10
+          ATTEMPT=0
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            ATTEMPT=$((ATTEMPT + 1))
+            echo "Attempt $ATTEMPT of $MAX_ATTEMPTS..."
+
+            # Get check runs for this SHA
+            CHECK_RUNS=$(gh api repos/${{ github.repository }}/commits/$SHA/check-runs --jq '.check_runs[] | select(.name == "quality (lint, typecheck, unit tests)")')
+
+            if [ -z "$CHECK_RUNS" ]; then
+              echo "CI/quality check not found yet, waiting 30s..."
+              sleep 30
+              continue
+            fi
+
+            CONCLUSION=$(echo "$CHECK_RUNS" | jq -r '.conclusion // "pending"')
+            STATUS=$(echo "$CHECK_RUNS" | jq -r '.status')
+
+            echo "CI/quality status: $STATUS, conclusion: $CONCLUSION"
+
+            if [ "$STATUS" = "completed" ]; then
+              if [ "$CONCLUSION" = "success" ]; then
+                echo "✅ CI/quality passed! Proceeding with release."
+                exit 0
+              else
+                echo "❌ CI/quality failed with conclusion: $CONCLUSION"
+                echo "Release blocked. Fix CI/quality issues before releasing."
+                exit 1
+              fi
+            fi
+
+            echo "CI/quality still running, waiting 30s..."
+            sleep 30
+          done
+
+          echo "❌ Timeout waiting for CI/quality check."
+          echo "Release blocked. Ensure CI/quality workflow runs and passes."
+          exit 1
+        shell: bash
+
   build:
+    needs: quality-gate
     environment: release
     strategy:
       # max-parallel: 1 # Uncomment to prevent race condition when creating releases

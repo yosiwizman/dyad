@@ -77,6 +77,26 @@ The release workflow includes a `verify-assets` job that runs `scripts/verify-re
 - ✅ Windows nupkg exists
 - ✅ RELEASES manifest exists
 
+### Quality Gate
+
+The release workflow includes a `quality-gate` job that **blocks releases when CI/quality is failing**. This ensures we never release broken builds.
+
+**How it works:**
+
+1. When a release is triggered, `quality-gate` runs first
+2. It queries GitHub's API for the "quality" check status on the current commit
+3. If CI/quality hasn't run yet, it waits up to 5 minutes for it to complete
+4. Release proceeds only if CI/quality passes
+5. Release is blocked if CI/quality fails or times out
+
+**What this prevents:**
+
+- Releasing code that fails lint checks
+- Releasing code with TypeScript errors
+- Releasing code with failing unit tests
+
+> **Note**: If you push a tag before CI completes on the commit, the release will wait for CI. If CI fails, the release workflow will also fail.
+
 ## Troubleshooting
 
 ### Missing Assets Playbook
