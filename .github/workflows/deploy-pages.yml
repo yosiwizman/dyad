@@ -37,6 +37,7 @@ jobs:
             for check in "${checks[@]}"; do
               status=$(gh api repos/$REPO/commits/$SHA/check-runs --jq ".check_runs[] | select(.name==\"$check\") | .status" | head -n1)
               conclusion=$(gh api repos/$REPO/commits/$SHA/check-runs --jq ".check_runs[] | select(.name==\"$check\") | .conclusion" | head -n1)
+              echo "Check: $check | status: ${status:-none} | conclusion: ${conclusion:-none}"
 
               if [[ -z "$status" ]]; then
                 all_ok=false
