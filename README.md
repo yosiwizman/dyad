@@ -12,6 +12,10 @@ Download the latest release for your platform:
 
 👉 [**Download from GitHub Releases**](https://github.com/yosiwizman/dyad/releases)
 
+## 🌐 Live Preview (GitHub Pages)
+
+See `docs/ops/PREVIEW_LINK.md` for the always-on testing link and what to verify after merges.
+
 ### Install
 
 #### Windows

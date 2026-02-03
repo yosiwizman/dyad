@@ -5,8 +5,15 @@ import { defineConfig } from "vite";
 
 const ReactCompilerConfig = {};
 
+const isGitHubPages = process.env.GITHUB_PAGES === "true";
+const basePath = isGitHubPages ? "/dyad/" : "/";
+
 // https://vite.dev/config/
 export default defineConfig({
+  base: basePath,
+  define: {
+    "import.meta.env.VITE_BASE_PATH": JSON.stringify(basePath),
+  },
   plugins: [
     react({
       babel: {
