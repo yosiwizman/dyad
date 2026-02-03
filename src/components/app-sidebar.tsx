@@ -1,16 +1,30 @@
 import {
   Home,
-  Inbox,
+  MessageSquare,
   Settings,
   HelpCircle,
   Store,
   BookOpen,
+  Users,
+  LayoutTemplate,
+  Bug,
+  Rocket,
+  Lock,
+  Plug,
+  GitBranch,
+  Activity,
+  Upload,
+  HardDrive,
+  User,
+  type LucideIcon,
 } from "lucide-react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useSidebar } from "@/components/ui/sidebar"; // import useSidebar hook
 import { useEffect, useState, useRef } from "react";
 import { useAtom } from "jotai";
 import { dropdownOpenAtom } from "@/atoms/uiAtoms";
+import { useRoleNavigation } from "@/contexts/RoleContext";
+import type { NavEntry } from "@/lib/rbac/types";
 
 import {
   Sidebar,
@@ -29,34 +43,35 @@ import { AppList } from "./AppList";
 import { HelpDialog } from "./HelpDialog"; // Import the new dialog
 import { SettingsList } from "./SettingsList";
 
-// Menu items.
-const items = [
-  {
-    title: "Apps",
-    to: "/",
-    icon: Home,
-  },
-  {
-    title: "Chat",
-    to: "/chat",
-    icon: Inbox,
-  },
-  {
-    title: "Settings",
-    to: "/settings",
-    icon: Settings,
-  },
-  {
-    title: "Library",
-    to: "/library",
-    icon: BookOpen,
-  },
-  {
-    title: "Hub",
-    to: "/hub",
-    icon: Store,
-  },
-];
+/**
+ * Icon map from string names to Lucide icon components.
+ * Used to resolve icon names from navigation config.
+ */
+const ICON_MAP: Record<string, LucideIcon> = {
+  Home,
+  MessageSquare,
+  Settings,
+  Store,
+  BookOpen,
+  Users,
+  LayoutTemplate,
+  Bug,
+  Rocket,
+  Lock,
+  Plug,
+  GitBranch,
+  Activity,
+  Upload,
+  HardDrive,
+  User,
+};
+
+/**
+ * Resolve an icon name to a Lucide icon component.
+ */
+function getIcon(iconName: string): LucideIcon {
+  return ICON_MAP[iconName] || Home;
+}
 
 // Hover state types
 type HoverState =
@@ -178,15 +193,26 @@ function AppIcons({
 }) {
   const routerState = useRouterState();
   const pathname = routerState.location.pathname;
+  const navEntries = useRoleNavigation();
+
+  // Map hover state based on nav entry title
+  const getHoverState = (title: string): HoverState | null => {
+    const lowerTitle = title.toLowerCase();
+    if (lowerTitle === "home" || lowerTitle === "apps")
+      return "start-hover:app";
+    if (lowerTitle === "chat") return "start-hover:chat";
+    if (lowerTitle === "settings") return "start-hover:settings";
+    if (lowerTitle === "library") return "start-hover:library";
+    return null;
+  };
 
   return (
     // When collapsed: only show the main menu
     <SidebarGroup className="pr-0">
-      {/* <SidebarGroupLabel>Dyad</SidebarGroupLabel> */}
-
       <SidebarGroupContent>
         <SidebarMenu>
-          {items.map((item) => {
+          {navEntries.map((item: NavEntry) => {
+            const Icon = getIcon(item.icon);
             const isActive =
               (item.to === "/" && pathname === "/") ||
               (item.to !== "/" && pathname.startsWith(item.to));
@@ -204,20 +230,18 @@ function AppIcons({
                       isActive ? "bg-sidebar-accent" : ""
                     }`}
                     onMouseEnter={() => {
-                      if (item.title === "Apps") {
-                        onHoverChange("start-hover:app");
-                      } else if (item.title === "Chat") {
-                        onHoverChange("start-hover:chat");
-                      } else if (item.title === "Settings") {
-                        onHoverChange("start-hover:settings");
-                      } else if (item.title === "Library") {
-                        onHoverChange("start-hover:library");
+                      const hoverState = getHoverState(item.title);
+                      if (hoverState) {
+                        onHoverChange(hoverState);
                       }
                     }}
                   >
                     <div className="flex flex-col items-center gap-1">
-                      <item.icon className="h-5 w-5" />
+                      <Icon className="h-5 w-5" />
                       <span className={"text-xs"}>{item.title}</span>
+                      {item.isStub && (
+                        <span className="absolute top-0 right-0 w-2 h-2 bg-amber-500 rounded-full" />
+                      )}
                     </div>
                   </Link>
                 </SidebarMenuButton>

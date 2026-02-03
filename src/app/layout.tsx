@@ -6,6 +6,7 @@ import {
   OwnerSetupProvider,
   useOwnerSetup,
 } from "../contexts/OwnerSetupContext";
+import { RoleProvider } from "../contexts/RoleContext";
 import { Toaster } from "sonner";
 import { TitleBar } from "./TitleBar";
 import { useEffect, useState, type ReactNode } from "react";
@@ -112,28 +113,30 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
   return (
     <ThemeProvider>
-      <OwnerSetupProvider>
-        <DeepLinkProvider>
-          <SidebarProvider>
-            <TitleBar />
-            <AppSidebar />
-            <div
-              id="layout-main-content-container"
-              className="flex h-screenish w-full overflow-x-hidden mt-12 mb-4 mr-4 border-t border-l border-border rounded-lg bg-background"
-            >
-              {children}
-            </div>
-            <Toaster richColors />
-            {/* Admin Config Panel - accessible via Ctrl+Shift+K */}
-            <AdminConfigPanel
-              isOpen={isAdminConfigOpen}
-              onClose={() => setIsAdminConfigOpen(false)}
-            />
-            {/* Owner Setup Wizard - rendered via context */}
-            <OwnerSetupWizardContainer />
-          </SidebarProvider>
-        </DeepLinkProvider>
-      </OwnerSetupProvider>
+      <RoleProvider>
+        <OwnerSetupProvider>
+          <DeepLinkProvider>
+            <SidebarProvider>
+              <TitleBar />
+              <AppSidebar />
+              <div
+                id="layout-main-content-container"
+                className="flex h-screenish w-full overflow-x-hidden mt-12 mb-4 mr-4 border-t border-l border-border rounded-lg bg-background"
+              >
+                {children}
+              </div>
+              <Toaster richColors />
+              {/* Admin Config Panel - accessible via Ctrl+Shift+K */}
+              <AdminConfigPanel
+                isOpen={isAdminConfigOpen}
+                onClose={() => setIsAdminConfigOpen(false)}
+              />
+              {/* Owner Setup Wizard - rendered via context */}
+              <OwnerSetupWizardContainer />
+            </SidebarProvider>
+          </DeepLinkProvider>
+        </OwnerSetupProvider>
+      </RoleProvider>
     </ThemeProvider>
   );
 }
