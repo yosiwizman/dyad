@@ -1,0 +1,88 @@
+name: Deploy Pages
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    name: Deploy Vite web preview to GitHub Pages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Wait for required CI checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          checks=("CI / quality (lint, typecheck, unit tests)" "CI / build (windows)" "CI / build (macos)" "CI/web preview artifact")
+          attempts=10
+          interval=30
+
+          for ((i=1; i<=attempts; i++)); do
+            all_ok=true
+            for check in "${checks[@]}"; do
+              status=$(gh api repos/$REPO/commits/$SHA/check-runs --jq ".check_runs[] | select(.name==\"$check\") | .status" | head -n1)
+              conclusion=$(gh api repos/$REPO/commits/$SHA/check-runs --jq ".check_runs[] | select(.name==\"$check\") | .conclusion" | head -n1)
+
+              if [[ -z "$status" ]]; then
+                all_ok=false
+              elif [[ "$status" != "completed" ]]; then
+                all_ok=false
+              elif [[ "$conclusion" != "success" ]]; then
+                echo "Required check failed: $check (conclusion=$conclusion)"
+                exit 1
+              fi
+            done
+            if $all_ok; then
+              echo "All required checks succeeded."
+              break
+            fi
+            if [[ $i -eq $attempts ]]; then
+              echo "Timed out waiting for required checks."
+              exit 1
+            fi
+            echo "Checks pending... attempt $i/$attempts"
+            sleep $interval
+          done
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund --progress=false
+
+      - name: Build static site (Vite)
+        env:
+          GITHUB_PAGES: "true"
+          VITE_BASE_PATH: "/dyad/"
+        run: |
+          npm run web:build
+          # SPA fallback for GitHub Pages
+          cp dist/index.html dist/404.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

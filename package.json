@@ -44,6 +44,7 @@
     "verify-icon-hashes": "node scripts/verify-icon-hashes.mjs",
     "verify-squirrel-shortcuts": "node scripts/verify-squirrel-shortcuts.mjs",
     "regenerate-icons": "node scripts/regenerate-icons.mjs",
+    "web:build": "npx vite build --config vite.renderer.config.mts --outDir dist --emptyOutDir",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
