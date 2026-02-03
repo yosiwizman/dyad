@@ -47,6 +47,7 @@ export const router = createRouter({
   routeTree,
   defaultNotFoundComponent: NotFoundRedirect,
   defaultErrorComponent: ErrorBoundary,
+  basepath: (import.meta as any).env?.VITE_BASE_PATH ?? "/",
 });
 
 declare module "@tanstack/react-router" {
