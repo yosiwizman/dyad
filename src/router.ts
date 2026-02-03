@@ -7,6 +7,8 @@ import { providerSettingsRoute } from "./routes/settings/providers/$provider";
 import { appDetailsRoute } from "./routes/app-details";
 import { hubRoute } from "./routes/hub";
 import { libraryRoute } from "./routes/library";
+import { adminRoutes } from "./routes/admin";
+import { childRoutes } from "./routes/child";
 
 const routeTree = rootRoute.addChildren([
   homeRoute,
@@ -15,6 +17,10 @@ const routeTree = rootRoute.addChildren([
   chatRoute,
   appDetailsRoute,
   settingsRoute.addChildren([providerSettingsRoute]),
+  // Admin routes (protected by RequireAdmin in each page)
+  ...adminRoutes,
+  // Child routes (protected by RequireChild in each page)
+  ...childRoutes,
 ]);
 
 // src/components/NotFoundRedirect.tsx
