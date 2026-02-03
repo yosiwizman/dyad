@@ -28,18 +28,22 @@ jobs:
           SHA: ${{ github.sha }}
           REPO: ${{ github.repository }}
         run: |
-          checks=("CI / quality (lint, typecheck, unit tests)" "CI / build (windows)" "CI / build (macos)")
+          checks=("CI / quality (lint, typecheck, unit tests)" "CI / build (windows)" "CI / build (macos)" "CI/web preview artifact")
           attempts=10
           interval=30
 
           for ((i=1; i<=attempts; i++)); do
             all_ok=true
             for check in "${checks[@]}"; do
-              status=$(gh api repos/$REPO/commits/$SHA/status --jq ".statuses[] | select(.context==\"$check\") | .state" | head -n1)
-              if [[ -z "$status" || "$status" == "pending" ]]; then
+              status=$(gh api repos/$REPO/commits/$SHA/check-runs --jq ".check_runs[] | select(.name==\"$check\") | .status" | head -n1)
+              conclusion=$(gh api repos/$REPO/commits/$SHA/check-runs --jq ".check_runs[] | select(.name==\"$check\") | .conclusion" | head -n1)
+
+              if [[ -z "$status" ]]; then
                 all_ok=false
-              elif [[ "$status" == "failure" || "$status" == "error" ]]; then
-                echo "Required check failed: $check (status=$status)"
+              elif [[ "$status" != "completed" ]]; then
+                all_ok=false
+              elif [[ "$conclusion" != "success" ]]; then
+                echo "Required check failed: $check (conclusion=$conclusion)"
                 exit 1
               fi
             done
