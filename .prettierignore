@@ -7,3 +7,4 @@ drizzle/
 **/snapshots/**
 # test fixtures
 e2e-tests/fixtures/**
+.github/workflows/deploy-pages.yml
