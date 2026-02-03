@@ -222,12 +222,12 @@ Header: x-abba-device-token: <token>
 
 **Responses:**
 
-|| Status | Message                         | Meaning                              |
+|| Status | Message | Meaning |
 || ------ | ------------------------------- | ------------------------------------ |
-|| 200    | `{ ok: true, auth: "ok" }`      | Token is valid                       |
-|| 401    | `Missing device token`          | Header not provided                  |
-|| 401    | `Invalid device token`          | Token doesn't match broker config    |
-|| 503    | `{ error: "BrokerMisconfigured" }` | Server ABBA_DEVICE_TOKEN not set  |
+|| 200 | `{ ok: true, auth: "ok" }` | Token is valid |
+|| 401 | `Missing device token` | Header not provided |
+|| 401 | `Invalid device token` | Token doesn't match broker config |
+|| 503 | `{ error: "BrokerMisconfigured" }` | Server ABBA_DEVICE_TOKEN not set |
 
 This endpoint never returns the actual token value, making it safe for debugging.
 
@@ -235,14 +235,14 @@ This endpoint never returns the actual token value, making it safe for debugging
 
 The desktop app maps broker auth responses to clear UI states:
 
-|| Auth Result          | UI State         | User Action                            |
+|| Auth Result | UI State | User Action |
 || -------------------- | ---------------- | -------------------------------------- |
-|| 200 OK               | Connected        | Ready to publish                       |
-|| Token not configured | Setup Required   | Enter token in Admin Config            |
-|| 503 BrokerMisconfigured | Misconfigured | Contact admin: server token missing    |
-|| 401 Invalid Token    | Mismatch         | Token doesn't match, re-enter token    |
-|| 401 Missing Token    | Mismatch         | Client bug, token not sent             |
-|| 5xx / Network Error  | Error            | Transient error, try again later       |
+|| 200 OK | Connected | Ready to publish |
+|| Token not configured | Setup Required | Enter token in Admin Config |
+|| 503 BrokerMisconfigured | Misconfigured | Contact admin: server token missing |
+|| 401 Invalid Token | Mismatch | Token doesn't match, re-enter token |
+|| 401 Missing Token | Mismatch | Client bug, token not sent |
+|| 5xx / Network Error | Error | Transient error, try again later |
 
 Diagnostics now include `lastAuthStatus` and `lastAuthTimestamp` for debugging.
 
@@ -265,7 +265,7 @@ If you see "Broker server misconfigured" or error code `BrokerMisconfigured`:
 3. **Fix**: Add `ABBA_DEVICE_TOKEN` to the broker's Vercel environment and redeploy
 4. **Note**: After setting the env var, you must redeploy for changes to take effect
 
-2. **Test connection:**
+5. **Test connection:**
 
    - Click "Test Connection" in Admin Config
    - This calls `/api/health/auth` and shows:
@@ -273,19 +273,19 @@ If you see "Broker server misconfigured" or error code `BrokerMisconfigured`:
      - "Token invalid: Your token (hash: abc123...) does not match..." - Mismatch
      - "Token missing: The token was not sent..." - Client-side issue
 
-3. **Compare token hash prefixes:**
+6. **Compare token hash prefixes:**
 
    - Click "Copy Diagnostics" to get `tokenHashPrefix` (first 8 chars of SHA256)
    - Compare with the broker's token hash (check Vercel logs or admin panel)
    - If hashes differ, the token values don't match
 
-4. **Common issues:**
+7. **Common issues:**
 
    - Copy/paste added extra whitespace or newlines (tokens are now auto-trimmed)
    - Token was changed on broker but not updated on device
    - Wrong token was entered (check for typos)
 
-5. **Reset and re-enter:**
+8. **Reset and re-enter:**
    - Clear the token field
    - Re-copy the exact token from your broker admin
    - Paste and save (do not manually type)

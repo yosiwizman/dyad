@@ -77,6 +77,26 @@ The release workflow includes a `verify-assets` job that runs `scripts/verify-re
 - ✅ Windows nupkg exists
 - ✅ RELEASES manifest exists
 
+### Quality Gate
+
+The release workflow includes a `quality-gate` job that **blocks releases when CI/quality is failing**. This ensures we never release broken builds.
+
+**How it works:**
+
+1. When a release is triggered, `quality-gate` runs first
+2. It queries GitHub's API for the "quality" check status on the current commit
+3. If CI/quality hasn't run yet, it waits up to 5 minutes for it to complete
+4. Release proceeds only if CI/quality passes
+5. Release is blocked if CI/quality fails or times out
+
+**What this prevents:**
+
+- Releasing code that fails lint checks
+- Releasing code with TypeScript errors
+- Releasing code with failing unit tests
+
+> **Note**: If you push a tag before CI completes on the commit, the release will wait for CI. If CI fails, the release workflow will also fail.
+
 ## Troubleshooting
 
 ### Missing Assets Playbook
@@ -101,23 +121,25 @@ gh run view <RUN_ID> --repo yosiwizman/dyad --log-failed
 
 #### Step 2: Common Failure Causes
 
-| Symptom | Root Cause | Fix |
-|---------|------------|-----|
-| "Unexpected '}'" in esbuild | Missing brace in TypeScript | Fix syntax, bump version, re-tag |
-| Build timeout | Large assets, slow runners | Re-run workflow |
-| Signing failed | Missing/expired certificates | Check secrets, re-run |
-| "Rate limit" errors | GitHub API throttling | Wait 15 min, re-run |
-| "Draft release not found" | Assets not uploaded | Check platform build logs |
+| Symptom                     | Root Cause                   | Fix                              |
+| --------------------------- | ---------------------------- | -------------------------------- |
+| "Unexpected '}'" in esbuild | Missing brace in TypeScript  | Fix syntax, bump version, re-tag |
+| Build timeout               | Large assets, slow runners   | Re-run workflow                  |
+| Signing failed              | Missing/expired certificates | Check secrets, re-run            |
+| "Rate limit" errors         | GitHub API throttling        | Wait 15 min, re-run              |
+| "Draft release not found"   | Assets not uploaded          | Check platform build logs        |
 
 #### Step 3: Recovery Options
 
 **Option A: Re-run Failed Workflow (if builds succeeded but upload failed)**
+
 ```bash
 # Re-run via workflow_dispatch
 gh workflow run release.yml --repo yosiwizman/dyad -f tag=v0.2.X
 ```
 
 **Option B: Cut a New Patch Release (if code fix needed)**
+
 ```bash
 # Fix the code issue
 npm version patch --no-git-tag-version
@@ -131,6 +153,7 @@ git push origin v0.2.Y
 ```
 
 **Option C: Delete and Re-tag (if tag is broken)**
+
 ```bash
 # Delete remote tag
 git push --delete origin v0.2.X

@@ -8,15 +8,23 @@ describe("BrokerApiError", () => {
         "Unauthorized",
         401,
         "Unauthorized",
-        "Invalid token"
+        "Invalid token",
       );
       expect(error.isAuthError()).toBe(true);
     });
 
     it("should return false for other status codes", () => {
       const error403 = new BrokerApiError("Forbidden", 403, "Forbidden");
-      const error500 = new BrokerApiError("Server Error", 500, "Internal Server Error");
-      const error503 = new BrokerApiError("Unavailable", 503, "Service Unavailable");
+      const error500 = new BrokerApiError(
+        "Server Error",
+        500,
+        "Internal Server Error",
+      );
+      const error503 = new BrokerApiError(
+        "Unavailable",
+        503,
+        "Service Unavailable",
+      );
 
       expect(error403.isAuthError()).toBe(false);
       expect(error500.isAuthError()).toBe(false);
@@ -31,7 +39,7 @@ describe("BrokerApiError", () => {
         503,
         "Service Unavailable",
         '{"error":"BrokerMisconfigured"}',
-        "BrokerMisconfigured"
+        "BrokerMisconfigured",
       );
       expect(error.isBrokerMisconfigured()).toBe(true);
     });
@@ -40,7 +48,7 @@ describe("BrokerApiError", () => {
       const error = new BrokerApiError(
         "Service temporarily unavailable",
         503,
-        "Service Unavailable"
+        "Service Unavailable",
       );
       expect(error.isBrokerMisconfigured()).toBe(false);
     });
@@ -51,7 +59,7 @@ describe("BrokerApiError", () => {
         500,
         "Internal Server Error",
         undefined,
-        "BrokerMisconfigured"
+        "BrokerMisconfigured",
       );
       expect(error.isBrokerMisconfigured()).toBe(false);
     });
@@ -63,7 +71,7 @@ describe("BrokerApiError", () => {
         "Auth failed: token invalid",
         401,
         "Unauthorized",
-        '{"error":"InvalidToken","details":"secret-data"}'
+        '{"error":"InvalidToken","details":"secret-data"}',
       );
 
       const diagnostics = error.getDiagnostics();
@@ -83,8 +91,13 @@ describe("Auth state mapping", () => {
   // Maps TestBrokerAuthResult reasons to UI states
   const mapReasonToUIState = (
     reason: string | undefined,
-    success: boolean
-  ): "connected" | "setup_required" | "misconfigured" | "mismatch" | "error" => {
+    success: boolean,
+  ):
+    | "connected"
+    | "setup_required"
+    | "misconfigured"
+    | "mismatch"
+    | "error" => {
     if (success) return "connected";
     switch (reason) {
       case "token_not_set":
@@ -108,7 +121,9 @@ describe("Auth state mapping", () => {
   });
 
   it("should map broker_misconfigured to misconfigured", () => {
-    expect(mapReasonToUIState("broker_misconfigured", false)).toBe("misconfigured");
+    expect(mapReasonToUIState("broker_misconfigured", false)).toBe(
+      "misconfigured",
+    );
   });
 
   it("should map token_invalid to mismatch", () => {
@@ -161,18 +176,24 @@ describe("Vault error classifier", () => {
 
   describe("isAuthError", () => {
     it("should detect 401 errors", () => {
-      expect(isAuthError(new Error("Request failed with status 401"))).toBe(true);
+      expect(isAuthError(new Error("Request failed with status 401"))).toBe(
+        true,
+      );
       expect(isAuthError(new Error("401 Unauthorized"))).toBe(true);
     });
 
     it("should detect expired token errors", () => {
       expect(isAuthError(new Error("Token has expired"))).toBe(true);
-      expect(isAuthError(new Error("Session expired, please sign in again"))).toBe(true);
+      expect(
+        isAuthError(new Error("Session expired, please sign in again")),
+      ).toBe(true);
     });
 
     it("should detect invalid token errors", () => {
       expect(isAuthError(new Error("Invalid token provided"))).toBe(true);
-      expect(isAuthError(new Error("Token is invalid or malformed"))).toBe(true);
+      expect(isAuthError(new Error("Token is invalid or malformed"))).toBe(
+        true,
+      );
     });
 
     it("should detect unauthorized errors", () => {
@@ -196,7 +217,9 @@ describe("Vault error classifier", () => {
   describe("isNetworkError", () => {
     it("should detect network errors", () => {
       expect(isNetworkError(new Error("Network request failed"))).toBe(true);
-      expect(isNetworkError(new Error("NetworkError when attempting to fetch"))).toBe(true);
+      expect(
+        isNetworkError(new Error("NetworkError when attempting to fetch")),
+      ).toBe(true);
     });
 
     it("should detect fetch errors", () => {
@@ -205,11 +228,15 @@ describe("Vault error classifier", () => {
     });
 
     it("should detect DNS errors", () => {
-      expect(isNetworkError(new Error("getaddrinfo ENOTFOUND api.example.com"))).toBe(true);
+      expect(
+        isNetworkError(new Error("getaddrinfo ENOTFOUND api.example.com")),
+      ).toBe(true);
     });
 
     it("should detect timeout errors", () => {
-      expect(isNetworkError(new Error("Request timeout after 30000ms"))).toBe(true);
+      expect(isNetworkError(new Error("Request timeout after 30000ms"))).toBe(
+        true,
+      );
       expect(isNetworkError(new Error("Connection timeout"))).toBe(true);
     });
 
