@@ -445,9 +445,10 @@ export class WebIpcClient {
   }
 
   // --- System Info ---
-  public async getAppVersion() {
+  public async getAppVersion(): Promise<string> {
     logWebPreviewWarning("getAppVersion");
-    return { version: "web-preview", environment: "production" as const };
+    // Keep contract parity with the desktop IpcClient: return a string version.
+    return "web-preview";
   }
 
   public async getSystemDebugInfo() {
