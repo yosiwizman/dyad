@@ -782,6 +782,15 @@ export class WebIpcClient {
     return {};
   }
 
+  // --- Environment Variables ---
+  public async getEnvVars(): Promise<Record<string, string | undefined>> {
+    logWebPreviewWarning("getEnvVars");
+    // Return minimal env vars indicating web preview mode
+    return {
+      VITE_WEB_PREVIEW: "true",
+    };
+  }
+
   // --- Publish Methods ---
   public async publishStart() {
     logWebPreviewWarning("publishStart");

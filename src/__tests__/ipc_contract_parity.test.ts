@@ -175,6 +175,9 @@ const REQUIRED_IPC_METHODS = [
   "publishCancel",
   "publishDiagnostics",
 
+  // Environment
+  "getEnvVars",
+
   // Generic
   "invoke",
 ];
@@ -289,6 +292,31 @@ describe("IPC contract parity", () => {
     });
   });
 
+  describe("Environment variables", () => {
+    it("getEnvVars should return an object with VITE_WEB_PREVIEW", async () => {
+      global.window = {
+        location: { hostname: "localhost" },
+      } as any;
+
+      const { WebIpcClient } = await import("../ipc/web_ipc_client");
+      const client = WebIpcClient.getInstance();
+
+      const envVars = await client.getEnvVars();
+      expect(envVars).toHaveProperty("VITE_WEB_PREVIEW", "true");
+    });
+
+    it("getEnvVars should not throw", async () => {
+      global.window = {
+        location: { hostname: "localhost" },
+      } as any;
+
+      const { WebIpcClient } = await import("../ipc/web_ipc_client");
+      const client = WebIpcClient.getInstance();
+
+      await expect(client.getEnvVars()).resolves.not.toThrow();
+    });
+  });
+
   describe("Critical navigation methods", () => {
     it("all navigation-critical methods should exist and be callable", async () => {
       global.window = {
@@ -317,6 +345,7 @@ describe("IPC contract parity", () => {
         "getLanguageModels",
         "getTemplates",
         "getAppVersion",
+        "getEnvVars",
       ];
 
       for (const method of criticalMethods) {
