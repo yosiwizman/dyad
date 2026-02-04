@@ -36,7 +36,9 @@ export function mergeProviderSettings(
   providerSettings: UserSettings["providerSettings"] | undefined | null,
 ): UserSettings["providerSettings"] {
   const safeSettings =
-    providerSettings && typeof providerSettings === "object" ? providerSettings : {};
+    providerSettings && typeof providerSettings === "object"
+      ? providerSettings
+      : {};
 
   return {
     ...DEFAULT_AI_PROVIDERS,

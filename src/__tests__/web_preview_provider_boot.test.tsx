@@ -60,7 +60,7 @@ describe("web preview provider boot", () => {
     render(
       <QueryClientProvider client={queryClient}>
         <Probe />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     await waitFor(() => {
