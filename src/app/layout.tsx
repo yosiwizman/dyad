@@ -15,6 +15,7 @@ import { useProfile } from "@/contexts/ProfileContext";
 import { ProfileLockScreen } from "@/components/profile/ProfileLockScreen";
 import { AdminConfigPanel } from "@/components/admin/AdminConfigPanel";
 import { OwnerSetupWizard } from "@/components/admin/OwnerSetupWizard";
+import { WebPreviewBanner } from "@/components/WebPreviewBanner";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
   appConsoleEntriesAtom,
@@ -118,6 +119,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <DeepLinkProvider>
             <SidebarProvider>
               <TitleBar />
+              <WebPreviewBanner />
               <AppSidebar />
               <div
                 id="layout-main-content-container"
