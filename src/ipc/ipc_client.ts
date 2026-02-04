@@ -108,6 +108,8 @@ import type {
 } from "@/lib/schemas";
 import { showError } from "@/lib/toast";
 import { DeepLinkData } from "./deep_link_data";
+import { isDesktopRuntime } from "@/lib/platform/bridge";
+import { WebIpcClient } from "./web_ipc_client";
 
 export interface ChatStreamCallbacks {
   onUpdate: (messages: Message[]) => void;
@@ -139,7 +141,8 @@ interface DeleteCustomModelParams {
 }
 
 export class IpcClient {
-  private static instance: IpcClient;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private static instance: any;
   private ipcRenderer: IpcRenderer;
   private chatStreams: Map<number, ChatStreamCallbacks>;
   private appStreams: Map<number, AppStreamCallbacks>;
@@ -345,9 +348,23 @@ export class IpcClient {
     });
   }
 
+  /**
+   * Get the singleton IpcClient instance.
+   *
+   * In desktop (Electron) environments, returns the real IpcClient.
+   * In web preview (browser) environments, returns WebIpcClient with safe stubs.
+   *
+   * This prevents the app from crashing when running in GitHub Pages preview.
+   */
   public static getInstance(): IpcClient {
     if (!IpcClient.instance) {
-      IpcClient.instance = new IpcClient();
+      // Check if we're in a desktop (Electron) environment
+      // If not, return the web mock to prevent crashes
+      if (!isDesktopRuntime()) {
+        IpcClient.instance = WebIpcClient.getInstance();
+      } else {
+        IpcClient.instance = new IpcClient();
+      }
     }
     return IpcClient.instance;
   }
