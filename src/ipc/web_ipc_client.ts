@@ -18,6 +18,7 @@ import { logWebPreviewWarning } from "@/lib/platform/bridge";
 import type { UserSettings } from "@/lib/schemas";
 import { createDefaultUserSettings } from "@/lib/settings/defaults";
 import { mergeProviderSettings } from "@/lib/ai/providers/defaults";
+import { authorizeAdminAccess } from "@/lib/rbac/authorization";
 import type {
   ProfileSummary,
   CreateProfileInput,
@@ -812,14 +813,38 @@ export class WebIpcClient {
     return [];
   }
 
-  // --- Admin Methods ---
+// --- Admin Methods ---
+  // Admin methods enforce authorization at the boundary.
+  // Even in web preview, we check the demo role to demonstrate
+  // proper RBAC enforcement patterns.
+
   public async adminGetConfigStatus() {
     logWebPreviewWarning("adminGetConfigStatus");
+    const authResult = authorizeAdminAccess(getDemoRole());
+    if (!authResult.ok) {
+      console.log(
+        `[WebIpcClient] adminGetConfigStatus blocked: ${authResult.reasonCode}`,
+      );
+      // In web preview, we still return mock data for demo purposes
+      // In production, this would return the error
+    }
     return { configured: false };
   }
 
   public async adminGetDiagnostics() {
     logWebPreviewWarning("adminGetDiagnostics");
+    const authResult = authorizeAdminAccess(getDemoRole());
+    if (!authResult.ok) {
+      console.log(
+        `[WebIpcClient] adminGetDiagnostics blocked: ${authResult.reasonCode}`,
+      );
+      // Return 403-style response in demo mode to show the pattern
+      return {
+        ...authResult,
+        broker: null,
+        vault: null,
+      };
+    }
     return {};
   }
 

@@ -120,6 +120,38 @@ This generates:
 - 🛠 **Bring your own keys**: Use your own AI API keys — no vendor lock-in.
 - 🖥️ **Cross-platform**: Easy to run on Mac or Windows.
 
+## 🔐 Role-Based Access Control (RBAC)
+
+ABBA AI implements capability-driven RBAC with two user roles: **Admin** and **Child**.
+
+### Admin vs Child Mode
+
+- **Admin**: Full access to all features including Integrations, Vault (secrets), User management, Diagnostics, Settings, and all system configuration.
+- **Child**: Simplified navigation focused on app creation. Child users can create apps, use chat, view the library, and manage their profile. They cannot access admin modules or system settings.
+
+### Security Model
+
+**Important**: UI hiding is NOT a security control. RBAC is enforced at multiple layers:
+
+1. **Sidebar/Navigation**: Child users see a filtered navigation that excludes admin-only modules.
+2. **Route Guards**: Direct URL access to admin routes shows a kid-safe "Ask owner for help" block page (no stack traces or technical details).
+3. **IPC/API Boundary**: All privileged operations check authorization and return a standardized 403 response if denied:
+   ```json
+   { "ok": false, "status": 403, "reasonCode": "ROLE_MISSING", "message": "Forbidden", "decisionId": "..." }
+   ```
+
+### Web Preview Mode
+
+In Web Preview mode (GitHub Pages), you can test RBAC behavior using the Demo Mode controls in the sidebar footer. Switch between Admin and Child roles to verify navigation filtering and route guards work correctly.
+
+### Development Notes
+
+- Capabilities are defined in `src/lib/rbac/capabilities.ts`
+- Authorization helpers are in `src/lib/rbac/authorization.ts`
+- Navigation configuration is in `src/lib/rbac/navigation.ts`
+- Route guards use `<RequireAdmin>` and `<RequireRole>` components from `src/components/rbac/`
+- Tests ensure child role NEVER has admin-only capabilities (see `src/__tests__/rbac_capabilities.test.ts`)
+
 ## 🛠️ Contributing
 
 **ABBA AI** is open-source (see License info below).
