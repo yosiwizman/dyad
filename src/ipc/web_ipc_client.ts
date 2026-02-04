@@ -15,6 +15,9 @@
  */
 
 import { logWebPreviewWarning } from "@/lib/platform/bridge";
+import type { UserSettings } from "@/lib/schemas";
+import { createDefaultUserSettings } from "@/lib/settings/defaults";
+import { mergeProviderSettings } from "@/lib/ai/providers/defaults";
 import type {
   ProfileSummary,
   CreateProfileInput,
@@ -58,6 +61,22 @@ function setStorageItem<T>(key: string, value: T): void {
   } catch (e) {
     console.warn("[WebIpcClient] Failed to write to localStorage:", e);
   }
+}
+
+function normalizeUserSettings(raw: unknown): UserSettings {
+  const defaults = createDefaultUserSettings();
+
+  if (!raw || typeof raw !== "object") {
+    return defaults;
+  }
+
+  const partial = raw as Partial<UserSettings>;
+
+  return {
+    ...defaults,
+    ...partial,
+    providerSettings: mergeProviderSettings(partial.providerSettings),
+  };
 }
 
 /**
@@ -242,13 +261,34 @@ export class WebIpcClient {
   }
 
   // --- Settings ---
-  public async getUserSettings() {
+  public async getUserSettings(): Promise<UserSettings> {
     logWebPreviewWarning("getUserSettings");
-    return {};
+
+    const stored = getStorageItem<unknown>(DEMO_STORAGE_KEYS.SETTINGS, null);
+    return normalizeUserSettings(stored);
   }
 
-  public async setUserSettings() {
+  public async setUserSettings(
+    updates: Partial<UserSettings> = {},
+  ): Promise<UserSettings> {
     logWebPreviewWarning("setUserSettings");
+
+    const current = await this.getUserSettings();
+
+    const nextProviderSettings = mergeProviderSettings({
+      ...current.providerSettings,
+      ...updates.providerSettings,
+    });
+
+    const next = normalizeUserSettings({
+      ...current,
+      ...updates,
+      providerSettings: nextProviderSettings,
+    });
+
+    // Persist only when the UI writes settings.
+    setStorageItem(DEMO_STORAGE_KEYS.SETTINGS, next);
+    return next;
   }
 
   // --- Apps ---
