@@ -137,7 +137,13 @@ ABBA AI implements capability-driven RBAC with two user roles: **Admin** and **C
 2. **Route Guards**: Direct URL access to admin routes shows a kid-safe "Ask owner for help" block page (no stack traces or technical details).
 3. **IPC/API Boundary**: All privileged operations check authorization and return a standardized 403 response if denied:
    ```json
-   { "ok": false, "status": 403, "reasonCode": "ROLE_MISSING", "message": "Forbidden", "decisionId": "..." }
+   {
+     "ok": false,
+     "status": 403,
+     "reasonCode": "ROLE_MISSING",
+     "message": "Forbidden",
+     "decisionId": "..."
+   }
    ```
 
 ### Web Preview Mode

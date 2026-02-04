@@ -48,7 +48,9 @@ describe("RBAC Navigation Filtering", () => {
   describe("Child role sidebar filtering", () => {
     it("child nav entries should NOT include Integrations", () => {
       const childNav = getNavEntriesForRole("child");
-      const integrationsEntry = childNav.find((e) => e.title === "Integrations");
+      const integrationsEntry = childNav.find(
+        (e) => e.title === "Integrations",
+      );
       expect(integrationsEntry).toBeUndefined();
     });
 

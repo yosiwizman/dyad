@@ -813,7 +813,7 @@ export class WebIpcClient {
     return [];
   }
 
-// --- Admin Methods ---
+  // --- Admin Methods ---
   // Admin methods enforce authorization at the boundary.
   // Even in web preview, we check the demo role to demonstrate
   // proper RBAC enforcement patterns.

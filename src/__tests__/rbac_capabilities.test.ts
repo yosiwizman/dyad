@@ -230,7 +230,10 @@ describe("RBAC Authorization Helper", () => {
     });
 
     it("should return false for success results", () => {
-      const successResult = authorizeCapability("admin", Capability.MANAGE_VAULT);
+      const successResult = authorizeCapability(
+        "admin",
+        Capability.MANAGE_VAULT,
+      );
       expect(isAuthorizationError(successResult)).toBe(false);
     });
   });
