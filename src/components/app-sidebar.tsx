@@ -42,6 +42,7 @@ import { ChatList } from "./ChatList";
 import { AppList } from "./AppList";
 import { HelpDialog } from "./HelpDialog"; // Import the new dialog
 import { SettingsList } from "./SettingsList";
+import { DemoModeControls } from "./DemoModeControls";
 
 /**
  * Icon map from string names to Lucide icon components.
@@ -162,6 +163,8 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
+        {/* Demo mode controls - only visible in web preview */}
+        <DemoModeControls />
         <SidebarMenu>
           <SidebarMenuItem>
             {/* Change button to open dialog instead of linking */}

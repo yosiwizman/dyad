@@ -4,15 +4,85 @@
  * Provides safe no-op implementations of IpcClient methods for web preview mode.
  * This allows the app to boot and render UI even without the Electron backend.
  *
- * All methods either return sensible defaults or throw a user-friendly error
- * for operations that fundamentally require the desktop backend.
+ * In demo mode, profile and role data are persisted to localStorage to enable
+ * testing of onboarding, navigation, and RBAC functionality.
+ *
+ * localStorage Keys Used:
+ * - abba_demo_profiles: Array of ProfileSummary objects
+ * - abba_demo_active_profile: ActiveProfileSession object or null
+ * - abba_demo_role: "admin" | "child" for demo role override
+ * - abba_demo_settings: User settings object
  */
 
 import { logWebPreviewWarning } from "@/lib/platform/bridge";
+import type {
+  ProfileSummary,
+  CreateProfileInput,
+  ActiveProfileSession,
+} from "@/profiles/profile_types";
+
+// localStorage keys for demo mode persistence
+export const DEMO_STORAGE_KEYS = {
+  PROFILES: "abba_demo_profiles",
+  ACTIVE_PROFILE: "abba_demo_active_profile",
+  ROLE: "abba_demo_role",
+  SETTINGS: "abba_demo_settings",
+} as const;
 
 // Sentinel value used to indicate web preview mode
 const WEB_PREVIEW_ERROR =
   "This feature requires the desktop app. Download ABBA AI for full functionality.";
+
+/**
+ * Safe localStorage helper with JSON serialization.
+ */
+function getStorageItem<T>(key: string, defaultValue: T): T {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return defaultValue;
+  }
+  try {
+    const item = localStorage.getItem(key);
+    if (item === null) return defaultValue;
+    return JSON.parse(item) as T;
+  } catch {
+    return defaultValue;
+  }
+}
+
+function setStorageItem<T>(key: string, value: T): void {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return;
+  }
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (e) {
+    console.warn("[WebIpcClient] Failed to write to localStorage:", e);
+  }
+}
+
+/**
+ * Clear all demo data from localStorage.
+ */
+export function clearDemoData(): void {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return;
+  }
+  Object.values(DEMO_STORAGE_KEYS).forEach((key) => {
+    localStorage.removeItem(key);
+  });
+  console.log("[WebIpcClient] Demo data cleared");
+}
+
+/**
+ * Generate a UUID v4 for profile IDs.
+ */
+function generateUUID(): string {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
 
 /**
  * WebIpcClient provides stub implementations of all IpcClient methods.
@@ -33,55 +103,142 @@ export class WebIpcClient {
     return WebIpcClient.instance;
   }
 
-  // --- Profile Management (critical for boot) ---
-  // Return empty/false to allow app to boot without profiles
-  public async listProfiles() {
+  // --- Profile Management (localStorage-backed for demo mode) ---
+  public async listProfiles(): Promise<ProfileSummary[]> {
     logWebPreviewWarning("listProfiles");
-    return [];
+    return getStorageItem<ProfileSummary[]>(DEMO_STORAGE_KEYS.PROFILES, []);
   }
 
-  public async hasProfiles() {
+  public async hasProfiles(): Promise<boolean> {
     logWebPreviewWarning("hasProfiles");
-    return false;
+    const profiles = getStorageItem<ProfileSummary[]>(
+      DEMO_STORAGE_KEYS.PROFILES,
+      [],
+    );
+    return profiles.length > 0;
   }
 
-  public async getActiveProfile() {
+  public async getActiveProfile(): Promise<ActiveProfileSession | null> {
     logWebPreviewWarning("getActiveProfile");
-    return null;
+    return getStorageItem<ActiveProfileSession | null>(
+      DEMO_STORAGE_KEYS.ACTIVE_PROFILE,
+      null,
+    );
   }
 
-  public async verifyProfilePin() {
+  public async verifyProfilePin(
+    profileId: string,
+    pin: string,
+  ): Promise<{ success: boolean; session?: ActiveProfileSession }> {
     logWebPreviewWarning("verifyProfilePin");
-    return { success: false, error: WEB_PREVIEW_ERROR };
+    const profiles = getStorageItem<ProfileSummary[]>(
+      DEMO_STORAGE_KEYS.PROFILES,
+      [],
+    );
+    const profile = profiles.find((p) => p.id === profileId);
+
+    if (!profile) {
+      return { success: false };
+    }
+
+    // In demo mode, any 4+ digit PIN works
+    if (pin.length >= 4) {
+      const session: ActiveProfileSession = {
+        profileId: profile.id,
+        profileName: profile.name,
+        isAdmin: profile.isAdmin ?? false,
+        loginAt: new Date(),
+      };
+      setStorageItem(DEMO_STORAGE_KEYS.ACTIVE_PROFILE, session);
+      return { success: true, session };
+    }
+
+    return { success: false };
   }
 
-  public async createProfile() {
+  public async createProfile(
+    input: CreateProfileInput,
+  ): Promise<ProfileSummary> {
     logWebPreviewWarning("createProfile");
-    throw new Error(WEB_PREVIEW_ERROR);
+
+    const profiles = getStorageItem<ProfileSummary[]>(
+      DEMO_STORAGE_KEYS.PROFILES,
+      [],
+    );
+
+    // Create the new profile
+    const newProfile: ProfileSummary = {
+      id: generateUUID(),
+      name: input.name,
+      isAdmin: input.isAdmin ?? false,
+      avatarColor: input.avatarColor ?? "#8B5CF6",
+      createdAt: new Date().toISOString(),
+    };
+
+    // Save to localStorage
+    profiles.push(newProfile);
+    setStorageItem(DEMO_STORAGE_KEYS.PROFILES, profiles);
+
+    console.log("[WebIpcClient] Created demo profile:", newProfile.name);
+    return newProfile;
   }
 
-  public async deleteProfile() {
+  public async deleteProfile(profileId: string): Promise<void> {
     logWebPreviewWarning("deleteProfile");
-    throw new Error(WEB_PREVIEW_ERROR);
+    const profiles = getStorageItem<ProfileSummary[]>(
+      DEMO_STORAGE_KEYS.PROFILES,
+      [],
+    );
+    const filtered = profiles.filter((p) => p.id !== profileId);
+    setStorageItem(DEMO_STORAGE_KEYS.PROFILES, filtered);
+
+    // If deleting the active profile, clear session
+    const activeProfile = getStorageItem<ActiveProfileSession | null>(
+      DEMO_STORAGE_KEYS.ACTIVE_PROFILE,
+      null,
+    );
+    if (activeProfile?.profileId === profileId) {
+      setStorageItem(DEMO_STORAGE_KEYS.ACTIVE_PROFILE, null);
+    }
   }
 
-  public async logoutProfile() {
+  public async logoutProfile(): Promise<void> {
     logWebPreviewWarning("logoutProfile");
+    setStorageItem(DEMO_STORAGE_KEYS.ACTIVE_PROFILE, null);
   }
 
-  public async getProfile() {
+  public async getProfile(profileId: string): Promise<ProfileSummary | null> {
     logWebPreviewWarning("getProfile");
-    return null;
+    const profiles = getStorageItem<ProfileSummary[]>(
+      DEMO_STORAGE_KEYS.PROFILES,
+      [],
+    );
+    return profiles.find((p) => p.id === profileId) ?? null;
   }
 
-  public async updateProfile() {
+  public async updateProfile(
+    profileId: string,
+    updates: { name?: string; avatarColor?: string },
+  ): Promise<ProfileSummary> {
     logWebPreviewWarning("updateProfile");
-    throw new Error(WEB_PREVIEW_ERROR);
+    const profiles = getStorageItem<ProfileSummary[]>(
+      DEMO_STORAGE_KEYS.PROFILES,
+      [],
+    );
+    const index = profiles.findIndex((p) => p.id === profileId);
+    if (index === -1) {
+      throw new Error("Profile not found");
+    }
+    const updated = { ...profiles[index], ...updates };
+    profiles[index] = updated;
+    setStorageItem(DEMO_STORAGE_KEYS.PROFILES, profiles);
+    return updated;
   }
 
-  public async changeProfilePin() {
+  public async changeProfilePin(): Promise<boolean> {
     logWebPreviewWarning("changeProfilePin");
-    return false;
+    // In demo mode, PIN changes always "succeed"
+    return true;
   }
 
   // --- Settings ---
@@ -366,3 +523,33 @@ export class WebIpcClient {
 export type IpcClientInterface =
   | WebIpcClient
   | import("./ipc_client").IpcClient;
+
+// --- Demo Role Helpers ---
+import type { Role } from "@/lib/rbac/types";
+
+/**
+ * Get the demo role override from localStorage.
+ * Returns null if no override is set.
+ */
+export function getDemoRole(): Role | null {
+  const role = getStorageItem<string | null>(DEMO_STORAGE_KEYS.ROLE, null);
+  if (role === "admin" || role === "child") {
+    return role;
+  }
+  return null;
+}
+
+/**
+ * Set the demo role override in localStorage.
+ * Pass null to clear the override.
+ */
+export function setDemoRole(role: Role | null): void {
+  if (role === null) {
+    if (typeof window !== "undefined" && window.localStorage) {
+      localStorage.removeItem(DEMO_STORAGE_KEYS.ROLE);
+    }
+  } else {
+    setStorageItem(DEMO_STORAGE_KEYS.ROLE, role);
+  }
+  console.log("[WebIpcClient] Demo role set to:", role);
+}

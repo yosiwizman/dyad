@@ -14,6 +14,7 @@ import React, {
   useState,
   useCallback,
   useMemo,
+  useEffect,
 } from "react";
 import type { Role, SessionRoleContext } from "@/lib/rbac/types";
 import {
@@ -21,12 +22,15 @@ import {
   getNavEntriesForRole,
 } from "@/lib/rbac/navigation";
 import { useProfile } from "./ProfileContext";
+import { isWebPreviewMode } from "@/lib/platform/bridge";
+import { getDemoRole, setDemoRole } from "@/ipc/web_ipc_client";
 
 /**
  * Environment check for dev-only features.
- * Role switching is only available in development mode.
+ * Role switching is available in development mode OR web preview mode.
  */
 const isDevelopment = process.env.NODE_ENV === "development";
+const isWebPreview = typeof window !== "undefined" && isWebPreviewMode();
 
 /**
  * Capabilities that can be checked per role.
@@ -60,18 +64,28 @@ const RoleContext = createContext<SessionRoleContext | undefined>(undefined);
 export function RoleProvider({ children }: { children: React.ReactNode }) {
   const { activeProfile, isBellaModeActive } = useProfile();
 
-  // In development, allow role switching for testing
+  // In development or web preview, allow role switching for testing
   const [devOverrideRole, setDevOverrideRole] = useState<Role | null>(null);
+
+  // Load persisted demo role from localStorage in web preview mode
+  useEffect(() => {
+    if (isWebPreview) {
+      const persistedRole = getDemoRole();
+      if (persistedRole) {
+        setDevOverrideRole(persistedRole);
+      }
+    }
+  }, []);
 
   /**
    * Determine the current role based on:
-   * 1. Dev override (if set, development only)
+   * 1. Dev/demo override (if set, in development or web preview)
    * 2. Active profile (if in Bella Mode)
    * 3. Default to admin for non-Bella Mode
    */
   const role = useMemo((): Role => {
-    // Dev override takes precedence in development
-    if (isDevelopment && devOverrideRole !== null) {
+    // Dev/demo override takes precedence in development or web preview
+    if ((isDevelopment || isWebPreview) && devOverrideRole !== null) {
       return devOverrideRole;
     }
 
@@ -79,8 +93,10 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     // For now, profiles default to "child" role
     // Admin role requires explicit profile flag (future: profile.isAdmin)
     if (isBellaModeActive && activeProfile) {
-      // Future: check activeProfile.isAdmin or similar
-      // For now, default to child in Bella Mode
+      // Check if profile is admin
+      if (activeProfile.isAdmin) {
+        return "admin";
+      }
       return "child";
     }
 
@@ -107,14 +123,18 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     [role],
   );
 
-  // Dev-only role switcher
+  // Role switcher available in development OR web preview mode
   const switchRole = useMemo(() => {
-    if (!isDevelopment) {
+    if (!isDevelopment && !isWebPreview) {
       return undefined;
     }
     return (newRole: Role) => {
-      console.log(`[RoleContext] Dev role switch: ${role} -> ${newRole}`);
+      console.log(`[RoleContext] Role switch: ${role} -> ${newRole}`);
       setDevOverrideRole(newRole);
+      // Persist to localStorage in web preview mode
+      if (isWebPreview) {
+        setDemoRole(newRole);
+      }
     };
   }, [role]);
 

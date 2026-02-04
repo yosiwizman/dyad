@@ -20,10 +20,46 @@ Production preview (auto-updated on every merge to `main`):
 - **SPA routing**
   - Deep links like `/admin/diagnostics` and `/publish` work when loaded directly (404 fallback is in place).
 
+## Demo Mode (Web Preview)
+
+The web preview runs in **Demo Mode** which enables testing of UI functionality without the Electron backend.
+
+### Features Available in Demo Mode
+
+- **Onboarding & Profile Creation**: Create profiles that persist to localStorage
+- **Profile Login**: PIN verification (any 4+ digit PIN works)
+- **Role Switching**: Toggle between Admin and Child roles using the sidebar controls
+- **Navigation Testing**: Verify Admin vs Child navigation entries and route guards
+- **Reset Demo Data**: Clear all demo data and start fresh
+
+### Demo Mode Controls
+
+In the sidebar footer (visible only in web preview), you'll find:
+
+1. **Role Switcher**: Toggle between `Admin` and `Child` roles
+2. **Reset Demo Data**: Clears all localStorage demo data and reloads
+
+### localStorage Keys Used
+
+Demo mode persists data to these localStorage keys:
+
+- `abba_demo_profiles` - Array of ProfileSummary objects
+- `abba_demo_active_profile` - Current active session (or null)
+- `abba_demo_role` - Role override: "admin" | "child" | null
+- `abba_demo_settings` - User settings
+
+### Clearing Demo Data
+
+You can clear demo data using:
+
+- The "Reset Demo Data" button in the sidebar
+- Browser DevTools: `localStorage.clear()` or remove `abba_demo_*` keys
+
 ## How Roles Work (for testing)
 
 - **Default**: In production builds, role defaults to **child** when Bella Mode is active; otherwise **admin**.
-- **Dev-only role switch**: In development builds you can call `switchRole("admin" | "child")` from a component or browser console via `useRole()`. (Not available in production Pages build.)
+- **Web Preview**: Use the Demo Mode role switcher in the sidebar to toggle roles.
+- **Dev-only role switch**: In development builds you can call `switchRole("admin" | "child")` from a component or browser console via `useRole()`.
 
 ## Deployment Details
 
