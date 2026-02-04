@@ -78,9 +78,11 @@ describe("web boot (no desktop globals)", () => {
     const chats = await client.getChats();
     expect(chats).toEqual([]);
 
-    // Settings should return empty object
+    // Settings should return a safe default shape
     const settings = await client.getUserSettings();
-    expect(settings).toEqual({});
+    expect(settings).toHaveProperty("providerSettings");
+    expect(settings.providerSettings).toHaveProperty("openai");
+    expect(settings).toHaveProperty("selectedModel");
   });
 
   it("should return no-op unsubscribe functions for event listeners", async () => {

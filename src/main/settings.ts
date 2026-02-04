@@ -8,39 +8,16 @@ import {
   VertexProviderSetting,
 } from "../lib/schemas";
 import { safeStorage } from "electron";
-import { v4 as uuidv4 } from "uuid";
 import log from "electron-log";
-import { DEFAULT_TEMPLATE_ID } from "@/shared/templates";
-import { DEFAULT_THEME_ID } from "@/shared/themes";
 import { IS_TEST_BUILD } from "@/ipc/utils/test_utils";
+import { createDefaultUserSettings } from "@/lib/settings/defaults";
+import { mergeProviderSettings } from "@/lib/ai/providers/defaults";
 
 const logger = log.scope("settings");
 
 // IF YOU NEED TO UPDATE THIS, YOU'RE PROBABLY DOING SOMETHING WRONG!
 // Need to maintain backwards compatibility!
-const DEFAULT_SETTINGS: UserSettings = {
-  selectedModel: {
-    name: "auto",
-    provider: "auto",
-  },
-  providerSettings: {},
-  telemetryConsent: "unset",
-  telemetryUserId: uuidv4(),
-  hasRunBefore: false,
-  experiments: {},
-  enableProLazyEditsMode: true,
-  enableProSmartFilesContextMode: true,
-  selectedChatMode: "build",
-  enableAutoFixProblems: false,
-  enableAutoUpdate: true,
-  releaseChannel: "stable",
-  selectedTemplateId: DEFAULT_TEMPLATE_ID,
-  selectedThemeId: DEFAULT_THEME_ID,
-  isRunning: false,
-  lastKnownPerformance: undefined,
-  // Enabled by default in 0.33.0-beta.1
-  enableNativeGit: true,
-};
+const DEFAULT_SETTINGS: UserSettings = createDefaultUserSettings();
 
 const SETTINGS_FILE = "user-settings.json";
 
@@ -60,6 +37,11 @@ export function readSettings(): UserSettings {
       ...DEFAULT_SETTINGS,
       ...rawSettings,
     };
+
+    // Ensure providerSettings always has the canonical shape (including "openai")
+    combinedSettings.providerSettings = mergeProviderSettings(
+      combinedSettings.providerSettings,
+    );
     const supabase = combinedSettings.supabase;
     if (supabase) {
       // Decrypt legacy tokens (kept but ignored)
