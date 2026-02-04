@@ -111,7 +111,7 @@ describe("web boot (no desktop globals)", () => {
     expect(() => unsubStream()).not.toThrow();
   });
 
-  it("should provide version info in web mode", async () => {
+  it("should provide app version in web mode", async () => {
     global.window = {
       location: { hostname: "localhost" },
     } as any;
@@ -120,8 +120,7 @@ describe("web boot (no desktop globals)", () => {
     const client = WebIpcClient.getInstance();
 
     const version = await client.getAppVersion();
-    expect(version.version).toBe("web-preview");
-    expect(version.environment).toBe("production");
+    expect(version).toBe("web-preview");
   });
 
   it("should gracefully handle streaming methods without throwing", async () => {
