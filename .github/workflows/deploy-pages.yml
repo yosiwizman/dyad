@@ -20,6 +20,9 @@ jobs:
   deploy:
     name: Deploy Vite web preview to GitHub Pages
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -77,6 +80,9 @@ jobs:
               core.info(`Checks pending... attempt ${i}/${attempts}`);
               await new Promise((resolve) => setTimeout(resolve, intervalMs));
             }
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
