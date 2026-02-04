@@ -514,8 +514,292 @@ export class WebIpcClient {
     return [];
   }
 
-  // For any method not explicitly stubbed, provide a catch-all that
-  // allows property access without throwing, returning a stub function
+  // --- MCP Server Management (stubs for web preview) ---
+  public async listMcpServers() {
+    logWebPreviewWarning("listMcpServers");
+    return [];
+  }
+
+  public async createMcpServer() {
+    logWebPreviewWarning("createMcpServer");
+    return { id: 0 };
+  }
+
+  public async updateMcpServer() {
+    logWebPreviewWarning("updateMcpServer");
+  }
+
+  public async deleteMcpServer() {
+    logWebPreviewWarning("deleteMcpServer");
+  }
+
+  public async listMcpTools() {
+    logWebPreviewWarning("listMcpTools");
+    return [];
+  }
+
+  public async getMcpToolConsents() {
+    logWebPreviewWarning("getMcpToolConsents");
+    return [];
+  }
+
+  public async setMcpToolConsent() {
+    logWebPreviewWarning("setMcpToolConsent");
+  }
+
+  // --- Agent Tool Methods ---
+  public async setAgentToolConsent() {
+    logWebPreviewWarning("setAgentToolConsent");
+  }
+
+  public respondToAgentConsentRequest() {
+    logWebPreviewWarning("respondToAgentConsentRequest");
+  }
+
+  // --- GitHub Methods (stubs) ---
+  public startGithubDeviceFlow() {
+    logWebPreviewWarning("startGithubDeviceFlow");
+  }
+
+  public onGithubDeviceFlowUpdate() {
+    return () => {};
+  }
+
+  public onGithubDeviceFlowSuccess() {
+    return () => {};
+  }
+
+  public onGithubDeviceFlowError() {
+    return () => {};
+  }
+
+  public async getGithubUserLogin() {
+    logWebPreviewWarning("getGithubUserLogin");
+    return null;
+  }
+
+  public async listGithubRepos() {
+    logWebPreviewWarning("listGithubRepos");
+    return [];
+  }
+
+  public async getGithubRepoBranches() {
+    logWebPreviewWarning("getGithubRepoBranches");
+    return [];
+  }
+
+  public async getGithubState() {
+    logWebPreviewWarning("getGithubState");
+    return null;
+  }
+
+  public async checkGithubRepoAvailable() {
+    logWebPreviewWarning("checkGithubRepoAvailable");
+    return { available: false };
+  }
+
+  // --- Vercel Methods (stubs) ---
+  public async testVercelConnection() {
+    logWebPreviewWarning("testVercelConnection");
+    return { connected: false };
+  }
+
+  public async getVercelDeployments() {
+    logWebPreviewWarning("getVercelDeployments");
+    return [];
+  }
+
+  // --- App Management Methods ---
+  public async runApp() {
+    logWebPreviewWarning("runApp");
+  }
+
+  public async stopApp() {
+    logWebPreviewWarning("stopApp");
+  }
+
+  public async restartApp() {
+    logWebPreviewWarning("restartApp");
+  }
+
+  public async addAppToFavorite() {
+    logWebPreviewWarning("addAppToFavorite");
+  }
+
+  public async renameApp() {
+    logWebPreviewWarning("renameApp");
+  }
+
+  public async getAppEnvVars() {
+    logWebPreviewWarning("getAppEnvVars");
+    return {};
+  }
+
+  public async setAppEnvVars() {
+    logWebPreviewWarning("setAppEnvVars");
+  }
+
+  public async listVersions() {
+    logWebPreviewWarning("listVersions");
+    return [];
+  }
+
+  public async getCurrentBranch() {
+    logWebPreviewWarning("getCurrentBranch");
+    return null;
+  }
+
+  public async getAppUpgrades() {
+    logWebPreviewWarning("getAppUpgrades");
+    return [];
+  }
+
+  public async getAppTheme() {
+    logWebPreviewWarning("getAppTheme");
+    return null;
+  }
+
+  public async setAppTheme() {
+    logWebPreviewWarning("setAppTheme");
+  }
+
+  public async isCapacitor() {
+    logWebPreviewWarning("isCapacitor");
+    return false;
+  }
+
+  // --- Chat Methods ---
+  public async updateChat() {
+    logWebPreviewWarning("updateChat");
+  }
+
+  public async deleteMessages() {
+    logWebPreviewWarning("deleteMessages");
+  }
+
+  public cancelChatStream() {
+    logWebPreviewWarning("cancelChatStream");
+  }
+
+  // --- Other commonly used methods ---
+  public async countTokens() {
+    logWebPreviewWarning("countTokens");
+    return { count: 0 };
+  }
+
+  public async getProposal() {
+    logWebPreviewWarning("getProposal");
+    return null;
+  }
+
+  public async approveProposal() {
+    logWebPreviewWarning("approveProposal");
+  }
+
+  public async rejectProposal() {
+    logWebPreviewWarning("rejectProposal");
+  }
+
+  public async openExternalUrl() {
+    logWebPreviewWarning("openExternalUrl");
+  }
+
+  public async showItemInFolder() {
+    logWebPreviewWarning("showItemInFolder");
+  }
+
+  public async getNodejsStatus() {
+    logWebPreviewWarning("getNodejsStatus");
+    return { installed: false, version: null };
+  }
+
+  public async getNodePath() {
+    logWebPreviewWarning("getNodePath");
+    return null;
+  }
+
+  public async doesReleaseNoteExist() {
+    logWebPreviewWarning("doesReleaseNoteExist");
+    return false;
+  }
+
+  public async getChatContextResults() {
+    logWebPreviewWarning("getChatContextResults");
+    return [];
+  }
+
+  public async readAppFile() {
+    logWebPreviewWarning("readAppFile");
+    return null;
+  }
+
+  public async searchAppFiles() {
+    logWebPreviewWarning("searchAppFiles");
+    return [];
+  }
+
+  public async checkAiRules() {
+    logWebPreviewWarning("checkAiRules");
+    return { hasRules: false };
+  }
+
+  public async takeScreenshot() {
+    logWebPreviewWarning("takeScreenshot");
+    return null;
+  }
+
+  public async getChatLogs() {
+    logWebPreviewWarning("getChatLogs");
+    return [];
+  }
+
+  public addLog() {
+    logWebPreviewWarning("addLog");
+  }
+
+  public async clearLogs() {
+    logWebPreviewWarning("clearLogs");
+  }
+
+  public async listLocalOllamaModels() {
+    logWebPreviewWarning("listLocalOllamaModels");
+    return [];
+  }
+
+  public async listLocalLMStudioModels() {
+    logWebPreviewWarning("listLocalLMStudioModels");
+    return [];
+  }
+
+  // --- Admin Methods ---
+  public async adminGetConfigStatus() {
+    logWebPreviewWarning("adminGetConfigStatus");
+    return { configured: false };
+  }
+
+  public async adminGetDiagnostics() {
+    logWebPreviewWarning("adminGetDiagnostics");
+    return {};
+  }
+
+  // --- Publish Methods ---
+  public async publishStart() {
+    logWebPreviewWarning("publishStart");
+  }
+
+  public async publishStatus() {
+    logWebPreviewWarning("publishStatus");
+    return null;
+  }
+
+  public async publishCancel() {
+    logWebPreviewWarning("publishCancel");
+  }
+
+  public async publishDiagnostics() {
+    logWebPreviewWarning("publishDiagnostics");
+    return {};
+  }
 }
 
 // Type assertion to make WebIpcClient compatible with IpcClient interface
