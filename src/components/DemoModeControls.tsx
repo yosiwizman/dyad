@@ -57,7 +57,7 @@ export function DemoModeControls() {
   return (
     <TooltipProvider>
       <div className="border-t border-border p-2 bg-amber-500/10">
-        {/* Collapsed view - just an indicator */}
+        {/* Collapsed view - shows role badge and expand toggle */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="flex items-center justify-between w-full text-xs text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 rounded px-2 py-1 transition-colors"
@@ -65,6 +65,16 @@ export function DemoModeControls() {
           <div className="flex items-center gap-1.5">
             <Monitor className="h-3.5 w-3.5" />
             <span className="font-medium">Demo Mode</span>
+            {/* Role badge - always visible */}
+            <span
+              className={`ml-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                role === "admin"
+                  ? "bg-blue-500/20 text-blue-700 dark:text-blue-400"
+                  : "bg-green-500/20 text-green-700 dark:text-green-400"
+              }`}
+            >
+              {role === "admin" ? "Admin" : "Child"}
+            </span>
           </div>
           {isExpanded ? (
             <ChevronUp className="h-3.5 w-3.5" />

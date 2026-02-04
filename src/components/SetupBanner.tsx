@@ -31,6 +31,7 @@ import { useScrollAndNavigateTo } from "@/hooks/useScrollAndNavigateTo";
 import { OnboardingBanner } from "./home/OnboardingBanner";
 import { showError } from "@/lib/toast";
 import { useSettings } from "@/hooks/useSettings";
+import { isWebPreviewMode } from "@/lib/platform/bridge";
 
 type NodeInstallStep =
   | "install"
@@ -50,7 +51,16 @@ export function SetupBanner() {
   const [nodeCheckError, setNodeCheckError] = useState<boolean>(false);
   const [nodeInstallStep, setNodeInstallStep] =
     useState<NodeInstallStep>("install");
+
+  // In web preview mode, skip Node.js checks entirely
+  const isWebPreview = isWebPreviewMode();
+
   const checkNode = useCallback(async () => {
+    // In web preview, immediately mark as "not applicable" without checking
+    if (isWebPreview) {
+      setNodeSystemInfo({ installed: false, version: null } as any);
+      return;
+    }
     try {
       setNodeCheckError(false);
       const status = await IpcClient.getInstance().getNodejsStatus();
@@ -60,7 +70,7 @@ export function SetupBanner() {
       setNodeSystemInfo(null);
       setNodeCheckError(true);
     }
-  }, [setNodeSystemInfo, setNodeCheckError]);
+  }, [setNodeSystemInfo, setNodeCheckError, isWebPreview]);
   const [showManualConfig, setShowManualConfig] = useState(false);
   const [isSelectingPath, setIsSelectingPath] = useState(false);
   const { updateSettings } = useSettings();
@@ -132,7 +142,9 @@ export function SetupBanner() {
   }, [checkNode, setNodeInstallStep]);
 
   // We only check for node version because pnpm is not required for the app to run.
-  const isNodeSetupComplete = Boolean(nodeSystemInfo?.nodeVersion);
+  // In web preview mode, Node.js check is skipped (desktop-only feature)
+  const isNodeSetupComplete =
+    isWebPreview || Boolean(nodeSystemInfo?.nodeVersion);
 
   const itemsNeedAction: string[] = [];
   if (!isNodeSetupComplete && nodeSystemInfo) {
@@ -184,30 +196,48 @@ export function SetupBanner() {
           <AccordionItem
             value="node-setup"
             className={cn(
-              nodeCheckError
-                ? "bg-red-50 dark:bg-red-900/30"
-                : isNodeSetupComplete
-                  ? "bg-green-50 dark:bg-green-900/30"
-                  : "bg-yellow-50 dark:bg-yellow-900/30",
+              isWebPreview
+                ? "bg-blue-50 dark:bg-blue-900/30"
+                : nodeCheckError
+                  ? "bg-red-50 dark:bg-red-900/30"
+                  : isNodeSetupComplete
+                    ? "bg-green-50 dark:bg-green-900/30"
+                    : "bg-yellow-50 dark:bg-yellow-900/30",
             )}
           >
             <AccordionTrigger className="px-4 py-3 transition-colors w-full hover:no-underline">
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-3">
-                  {getStatusIcon(isNodeSetupComplete, nodeCheckError)}
+                  {isWebPreview ? (
+                    <CheckCircle className="w-5 h-5 text-blue-500" />
+                  ) : (
+                    getStatusIcon(isNodeSetupComplete, nodeCheckError)
+                  )}
                   <span className="font-medium text-sm">
                     1. Install Node.js (App Runtime)
+                    {isWebPreview && (
+                      <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">
+                        (Desktop-only)
+                      </span>
+                    )}
                   </span>
                 </div>
               </div>
             </AccordionTrigger>
             <AccordionContent className="px-4 pt-2 pb-4 bg-white dark:bg-zinc-900 border-t border-inherit">
-              {nodeCheckError && (
+              {isWebPreview ? (
+                <div className="text-sm text-blue-700 dark:text-blue-300">
+                  <p className="font-medium">Web Preview Mode</p>
+                  <p className="mt-1 text-blue-600 dark:text-blue-400">
+                    Node.js is only required in the desktop app. This check is
+                    skipped in web preview.
+                  </p>
+                </div>
+              ) : nodeCheckError ? (
                 <p className="text-sm text-red-600 dark:text-red-400">
                   Error checking Node.js status. Try installing Node.js.
                 </p>
-              )}
-              {isNodeSetupComplete ? (
+              ) : isNodeSetupComplete ? (
                 <p className="text-sm">
                   Node.js ({nodeSystemInfo!.nodeVersion}) installed.{" "}
                   {nodeSystemInfo!.pnpmVersion && (
