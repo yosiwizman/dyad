@@ -55,6 +55,88 @@ You can clear demo data using:
 - The "Reset Demo Data" button in the sidebar
 - Browser DevTools: `localStorage.clear()` or remove `abba_demo_*` keys
 
+## LLM Chat in Web Preview
+
+The web preview can connect to a real LLM via a secure proxy broker. This enables AI chat functionality without exposing API keys in the browser.
+
+### How It Works
+
+```
+┌─────────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│   Dyad Web Preview  │────▶│  LLM Proxy       │────▶│   OpenRouter    │
+│  (GitHub Pages)     │     │ (Cloudflare)     │     │      API        │
+└─────────────────────┘     └──────────────────┘     └─────────────────┘
+         │                           │
+         │  No API key               │  OPENROUTER_API_KEY
+         │  (CORS-protected)         │  (Worker Secret)
+```
+
+### Setup Instructions
+
+1. **Deploy the LLM Proxy** (one-time):
+
+   - Repository: [yosiwizman/dyad-llm-proxy](https://github.com/yosiwizman/dyad-llm-proxy)
+   - Follow the deployment instructions in the repo's README
+   - Note the deployed Worker URL (e.g., `https://dyad-llm-proxy.x-builder-staging.workers.dev`)
+
+2. **Configure in ABBA AI Web Preview** (admin only):
+
+   - Open the web preview: https://yosiwizman.github.io/dyad/
+   - Log in as admin profile
+   - Navigate to **Settings → Web Preview LLM**
+   - Enter the Worker URL (default is pre-configured)
+   - Click **Test Connection** to verify CORS and connectivity
+
+3. **Use Chat**:
+   - Navigate to the Chat section
+   - Type a message and send
+   - If configured correctly, the LLM will respond via the proxy
+
+### Troubleshooting
+
+#### "LLM is not connected in web preview mode"
+
+**Cause:** No broker URL configured or broker URL is empty.
+
+**Solution:** Go to Settings → Web Preview LLM and configure the broker URL.
+
+#### "Origin not allowed" (403 error)
+
+**Cause:** The broker's CORS allowlist doesn't include your origin.
+
+**Solution:**
+
+- For GitHub Pages: Ensure `https://yosiwizman.github.io` is in the broker's `ALLOWED_ORIGINS`
+- For localhost: Ensure `http://localhost:5173` and `http://localhost:4173` are allowed
+- Redeploy the broker after updating `wrangler.toml`
+
+#### "Connection failed with status 404"
+
+**Cause:** Accessing the broker root URL instead of the API endpoint.
+
+**Note:** The broker only responds to `/api/v1/chat/completions`, not `/` or other paths. This is intentional security design. The Test Connection button automatically uses the correct path.
+
+#### Network error / Failed to fetch
+
+**Causes:**
+
+- Broker is not deployed or offline
+- Incorrect broker URL (typo or wrong subdomain)
+- Browser blocking the request (mixed content, ad blocker)
+
+**Solution:**
+
+- Verify the broker URL is correct
+- Check the broker is deployed and accessible
+- Try accessing the broker URL in a new browser tab (you should see a CORS error, which is expected)
+
+### Security Notes
+
+- **API keys are NEVER exposed to the browser** - they're stored as Worker secrets
+- **CORS protection** prevents unauthorized sites from using your proxy
+- **Request logging** - only request IDs and status codes are logged, never message content
+- **Admin-only configuration** - only admin profiles can change the broker URL
+
 ## How Roles Work (for testing)
 
 - **Default**: In production builds, role defaults to **child** when Bella Mode is active; otherwise **admin**.

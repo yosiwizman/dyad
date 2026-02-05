@@ -311,6 +311,7 @@ export const UserSettingsSchema = z
     neon: NeonSchema.optional(),
     vault: VaultSettingsSchema.optional(),
     broker: BrokerSettingsSchema.optional(),
+    llmProxyUrl: z.string().optional(),
     autoApproveChanges: z.boolean().optional(),
     telemetryConsent: z.enum(["opted_in", "opted_out", "unset"]).optional(),
     telemetryUserId: z.string().optional(),

@@ -62,6 +62,7 @@ describe("readSettings", () => {
           "hasRunBefore": false,
           "isRunning": false,
           "lastKnownPerformance": undefined,
+          "llmProxyUrl": "https://dyad-llm-proxy.x-builder-staging.workers.dev",
           "providerSettings": {
             "anthropic": {},
             "auto": {},
@@ -329,6 +330,7 @@ describe("readSettings", () => {
           "hasRunBefore": false,
           "isRunning": false,
           "lastKnownPerformance": undefined,
+          "llmProxyUrl": "https://dyad-llm-proxy.x-builder-staging.workers.dev",
           "providerSettings": {
             "anthropic": {},
             "auto": {},

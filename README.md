@@ -16,6 +16,8 @@ Download the latest release for your platform:
 
 See `docs/ops/PREVIEW_LINK.md` for the always-on testing link and what to verify after merges.
 
+**NEW:** The web preview now supports real LLM chat via a secure Cloudflare Worker proxy ([dyad-llm-proxy](https://github.com/yosiwizman/dyad-llm-proxy)). This enables AI functionality in the browser without exposing API keys. See docs/ops/PREVIEW_LINK.md for setup instructions.
+
 ### Install
 
 #### Windows
