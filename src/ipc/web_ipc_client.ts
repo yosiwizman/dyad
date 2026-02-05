@@ -344,9 +344,108 @@ export class WebIpcClient {
     return [];
   }
 
-  // --- Streaming (no-op) ---
-  public streamMessage() {
-    logWebPreviewWarning("streamMessage");
+  // --- Streaming (implemented with broker proxy) ---
+  public streamMessage(
+    prompt: string,
+    options: {
+      selectedComponents?: any[];
+      chatId: number;
+      redo?: boolean;
+      attachments?: any[];
+      onUpdate: (messages: any[]) => void;
+      onEnd: (response: { chatId: number; updatedFiles: boolean }) => void;
+      onError: (error: string) => void;
+      onProblems?: (problems: any) => void;
+    },
+  ): void {
+    const { chatId, onUpdate, onEnd, onError } = options;
+
+    // Get broker URL from settings
+    const settings = getStorageItem<any>(DEMO_STORAGE_KEYS.SETTINGS, null);
+    const brokerUrl = settings?.llmProxyUrl;
+
+    if (!brokerUrl) {
+      logWebPreviewWarning("streamMessage - no broker URL configured");
+      onError(
+        "LLM is not connected in web preview mode. Please configure the LLM Proxy URL in Settings → Web Preview LLM."
+      );
+      return;
+    }
+
+    // Build OpenAI-compatible request
+    const requestBody = {
+      model: "openai/gpt-3.5-turbo", // Sensible default: fast and cheap
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    };
+
+    logWebPreviewWarning(
+      `streamMessage - calling broker at ${brokerUrl}/api/v1/chat/completions`
+    );
+
+    // Make request to broker
+    fetch(`${brokerUrl}/api/v1/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Origin: window.location.origin,
+      },
+      body: JSON.stringify(requestBody),
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          const errorText = await response.text();
+          let errorMessage = `Broker returned status ${response.status}`;
+          try {
+            const errorData = JSON.parse(errorText);
+            if (errorData.message) {
+              errorMessage = errorData.message;
+            }
+            if (errorData.requestId) {
+              console.error(
+                `[WebIpcClient] Broker error requestId: ${errorData.requestId}`
+              );
+            }
+          } catch {
+            // Not JSON, use default message
+          }
+          throw new Error(errorMessage);
+        }
+
+        const data = await response.json();
+        const assistantMessage = data.choices?.[0]?.message?.content;
+
+        if (!assistantMessage) {
+          throw new Error("No response content from LLM");
+        }
+
+        // Create assistant message
+        const messages = [
+          {
+            id: Date.now(),
+            role: "assistant" as const,
+            content: assistantMessage,
+            model: data.model || "openai/gpt-3.5-turbo",
+          },
+        ];
+
+        // Call onUpdate with the assistant message
+        onUpdate(messages);
+
+        // Call onEnd to signal completion
+        onEnd({
+          chatId,
+          updatedFiles: false,
+        });
+      })
+      .catch((error) => {
+        console.error("[WebIpcClient] Broker proxy error:", error);
+        onError(error instanceof Error ? error.message : String(error));
+      });
   }
 
   public cancelStream() {

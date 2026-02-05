@@ -36,6 +36,8 @@ import { AgentToolsSettings } from "@/components/settings/AgentToolsSettings";
 import { ZoomSelector } from "@/components/ZoomSelector";
 import { useSetAtom } from "jotai";
 import { activeSettingsSectionAtom } from "@/atoms/viewAtoms";
+import { WebPreviewSettings } from "@/components/settings/WebPreviewSettings";
+import { isWebPreviewMode } from "@/lib/platform/bridge";
 
 export default function SettingsPage() {
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
@@ -88,6 +90,19 @@ export default function SettingsPage() {
           <GeneralSettings appVersion={appVersion} />
           <WorkflowSettings />
           <AISettings />
+
+          {/* Web Preview Settings - only visible in web preview mode */}
+          {isWebPreviewMode() && (
+            <div
+              id="web-preview-settings"
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
+            >
+              <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                Web Preview LLM
+              </h2>
+              <WebPreviewSettings />
+            </div>
+          )}
 
           <div
             id="provider-settings"

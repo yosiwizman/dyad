@@ -35,6 +35,7 @@ export function createDefaultUserSettings(
     lastKnownPerformance: undefined,
     // Enabled by default in 0.33.0-beta.1
     enableNativeGit: true,
+    llmProxyUrl: "https://dyad-llm-proxy.x-builder-staging.workers.dev",
   };
 
   const merged: UserSettings = {

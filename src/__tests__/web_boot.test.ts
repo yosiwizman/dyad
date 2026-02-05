@@ -131,8 +131,15 @@ describe("web boot (no desktop globals)", () => {
     const { WebIpcClient } = await import("../ipc/web_ipc_client");
     const client = WebIpcClient.getInstance();
 
-    // These should not throw
-    expect(() => client.streamMessage()).not.toThrow();
+    // These should not throw (provide minimal valid arguments)
+    expect(() =>
+      client.streamMessage("test", {
+        chatId: 1,
+        onUpdate: () => {},
+        onEnd: () => {},
+        onError: () => {},
+      })
+    ).not.toThrow();
     expect(() => client.cancelStream()).not.toThrow();
     expect(() => client.startHelpChat()).not.toThrow();
     expect(() => client.cancelHelpChat()).not.toThrow();
