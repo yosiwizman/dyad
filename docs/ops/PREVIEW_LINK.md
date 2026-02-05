@@ -78,7 +78,7 @@ The web preview can connect to a real LLM via a secure proxy broker. This enable
    - Follow the deployment instructions in the repo's README
    - Note the deployed Worker URL (e.g., `https://dyad-llm-proxy.x-builder-staging.workers.dev`)
 
-2. **Configure in Dyad** (admin only):
+2. **Configure in ABBA AI Web Preview** (admin only):
    - Open the web preview: https://yosiwizman.github.io/dyad/
    - Log in as admin profile
    - Navigate to **Settings → Web Preview LLM**
