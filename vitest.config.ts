@@ -14,4 +14,7 @@ export default defineConfig({
       "@": resolve(__dirname, "./src"),
     },
   },
+  define: {
+    "import.meta.env.VITE_WEB_PREVIEW": JSON.stringify("false"),
+  },
 });
