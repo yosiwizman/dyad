@@ -7,7 +7,7 @@ describe("Web Preview LLM Proxy", () => {
       const defaults = createDefaultUserSettings();
       expect(defaults.llmProxyUrl).toBeDefined();
       expect(defaults.llmProxyUrl).toBe(
-        "https://dyad-llm-proxy.x-builder-staging.workers.dev"
+        "https://dyad-llm-proxy.x-builder-staging.workers.dev",
       );
     });
 
@@ -43,7 +43,7 @@ describe("Web Preview LLM Proxy", () => {
       // Set settings without brokerUrl
       localStorage.setItem(
         "abba_demo_settings",
-        JSON.stringify({ llmProxyUrl: "" })
+        JSON.stringify({ llmProxyUrl: "" }),
       );
 
       client.streamMessage("test prompt", {
@@ -57,7 +57,7 @@ describe("Web Preview LLM Proxy", () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockOnError).toHaveBeenCalledWith(
-        expect.stringContaining("LLM is not connected in web preview mode")
+        expect.stringContaining("LLM is not connected in web preview mode"),
       );
       expect(mockOnUpdate).not.toHaveBeenCalled();
       expect(mockOnEnd).not.toHaveBeenCalled();
@@ -87,7 +87,7 @@ describe("Web Preview LLM Proxy", () => {
         "abba_demo_settings",
         JSON.stringify({
           llmProxyUrl: "https://test-broker.example.com",
-        })
+        }),
       );
 
       client.streamMessage("Hello!", {
@@ -108,7 +108,7 @@ describe("Web Preview LLM Proxy", () => {
             "Content-Type": "application/json",
           }),
           body: expect.stringContaining("Hello!"),
-        })
+        }),
       );
 
       expect(mockOnUpdate).toHaveBeenCalledWith(
@@ -117,7 +117,7 @@ describe("Web Preview LLM Proxy", () => {
             role: "assistant",
             content: "Hello from LLM!",
           }),
-        ])
+        ]),
       );
 
       expect(mockOnEnd).toHaveBeenCalledWith({
@@ -149,7 +149,7 @@ describe("Web Preview LLM Proxy", () => {
         "abba_demo_settings",
         JSON.stringify({
           llmProxyUrl: "https://test-broker.example.com",
-        })
+        }),
       );
 
       client.streamMessage("Test", {
@@ -182,7 +182,7 @@ describe("Web Preview LLM Proxy", () => {
         "abba_demo_settings",
         JSON.stringify({
           llmProxyUrl: "https://test-broker.example.com",
-        })
+        }),
       );
 
       client.streamMessage("Test", {
@@ -196,7 +196,7 @@ describe("Web Preview LLM Proxy", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       expect(mockOnError).toHaveBeenCalledWith(
-        "Network error: Failed to fetch"
+        "Network error: Failed to fetch",
       );
       expect(mockOnUpdate).not.toHaveBeenCalled();
       expect(mockOnEnd).not.toHaveBeenCalled();

@@ -10,7 +10,9 @@ import { isWebPreviewMode } from "@/lib/platform/bridge";
 export function WebPreviewSettings() {
   const { settings, updateSettings } = useSettings();
   const { role } = useRole();
-  const [testStatus, setTestStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
+  const [testStatus, setTestStatus] = useState<
+    "idle" | "testing" | "success" | "error"
+  >("idle");
   const [testMessage, setTestMessage] = useState<string>("");
   const [brokerUrlInput, setBrokerUrlInput] = useState("");
 
@@ -58,7 +60,7 @@ export function WebPreviewSettings() {
     } catch (error) {
       setTestStatus("error");
       setTestMessage(
-        error instanceof Error ? error.message : "Unable to reach the broker"
+        error instanceof Error ? error.message : "Unable to reach the broker",
       );
     }
   };
@@ -88,17 +90,15 @@ export function WebPreviewSettings() {
             <Input
               id="llm-proxy-url"
               type="url"
-              placeholder={currentBrokerUrl || "https://your-worker.workers.dev"}
+              placeholder={
+                currentBrokerUrl || "https://your-worker.workers.dev"
+              }
               value={brokerUrlInput}
               onChange={(e) => setBrokerUrlInput(e.target.value)}
               className="font-mono text-sm"
             />
             {brokerUrlInput && (
-              <Button
-                onClick={handleSaveBrokerUrl}
-                size="sm"
-                variant="outline"
-              >
+              <Button onClick={handleSaveBrokerUrl} size="sm" variant="outline">
                 Save URL
               </Button>
             )}
@@ -150,7 +150,8 @@ export function WebPreviewSettings() {
 
       <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
         <p>
-          The LLM Proxy enables AI chat in the web preview without exposing API keys.
+          The LLM Proxy enables AI chat in the web preview without exposing API
+          keys.
         </p>
         <p>
           The proxy must support CORS and the{" "}

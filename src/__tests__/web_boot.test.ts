@@ -138,7 +138,7 @@ describe("web boot (no desktop globals)", () => {
         onUpdate: () => {},
         onEnd: () => {},
         onError: () => {},
-      })
+      }),
     ).not.toThrow();
     expect(() => client.cancelStream()).not.toThrow();
     expect(() => client.startHelpChat()).not.toThrow();

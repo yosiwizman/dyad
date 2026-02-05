@@ -74,11 +74,13 @@ The web preview can connect to a real LLM via a secure proxy broker. This enable
 ### Setup Instructions
 
 1. **Deploy the LLM Proxy** (one-time):
+
    - Repository: [yosiwizman/dyad-llm-proxy](https://github.com/yosiwizman/dyad-llm-proxy)
    - Follow the deployment instructions in the repo's README
    - Note the deployed Worker URL (e.g., `https://dyad-llm-proxy.x-builder-staging.workers.dev`)
 
 2. **Configure in ABBA AI Web Preview** (admin only):
+
    - Open the web preview: https://yosiwizman.github.io/dyad/
    - Log in as admin profile
    - Navigate to **Settings → Web Preview LLM**
@@ -102,7 +104,8 @@ The web preview can connect to a real LLM via a secure proxy broker. This enable
 
 **Cause:** The broker's CORS allowlist doesn't include your origin.
 
-**Solution:** 
+**Solution:**
+
 - For GitHub Pages: Ensure `https://yosiwizman.github.io` is in the broker's `ALLOWED_ORIGINS`
 - For localhost: Ensure `http://localhost:5173` and `http://localhost:4173` are allowed
 - Redeploy the broker after updating `wrangler.toml`
@@ -116,11 +119,13 @@ The web preview can connect to a real LLM via a secure proxy broker. This enable
 #### Network error / Failed to fetch
 
 **Causes:**
+
 - Broker is not deployed or offline
 - Incorrect broker URL (typo or wrong subdomain)
 - Browser blocking the request (mixed content, ad blocker)
 
 **Solution:**
+
 - Verify the broker URL is correct
 - Check the broker is deployed and accessible
 - Try accessing the broker URL in a new browser tab (you should see a CORS error, which is expected)

@@ -367,7 +367,7 @@ export class WebIpcClient {
     if (!brokerUrl) {
       logWebPreviewWarning("streamMessage - no broker URL configured");
       onError(
-        "LLM is not connected in web preview mode. Please configure the LLM Proxy URL in Settings → Web Preview LLM."
+        "LLM is not connected in web preview mode. Please configure the LLM Proxy URL in Settings → Web Preview LLM.",
       );
       return;
     }
@@ -384,7 +384,7 @@ export class WebIpcClient {
     };
 
     logWebPreviewWarning(
-      `streamMessage - calling broker at ${brokerUrl}/api/v1/chat/completions`
+      `streamMessage - calling broker at ${brokerUrl}/api/v1/chat/completions`,
     );
 
     // Make request to broker
@@ -407,7 +407,7 @@ export class WebIpcClient {
             }
             if (errorData.requestId) {
               console.error(
-                `[WebIpcClient] Broker error requestId: ${errorData.requestId}`
+                `[WebIpcClient] Broker error requestId: ${errorData.requestId}`,
               );
             }
           } catch {
