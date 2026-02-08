@@ -1,0 +1,13 @@
+{
+  "cto_os_version": "1.2.4",
+  "last_updated": "2026-02-08T00:35:00Z",
+  "steps": {
+    "v1.2.4_uniqueness_dedupe": {
+      "status": "DONE",
+      "description": "Remove redundant uniqueness indexes from request_nonces and tool_registry",
+      "completed_at": "2026-02-08T00:35:00Z",
+      "migration": "20260208000001_cto_os_v124_uniqueness_constraints.sql",
+      "evidence_doc": "docs/db/cto-os-v1.2.4-uniqueness-evidence.md"
+    }
+  }
+}
